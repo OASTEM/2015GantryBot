@@ -24,8 +24,8 @@ import edu.wpi.first.wpilibj.Timer;
  * this system. Use IterativeRobot or Command-Based instead if you're new.
  */
 public class Robot extends SampleRobot {
-    RobotDrive myRobot;
-    Joystick stick;
+    private RobotDrive myRobot;
+    private Joystick stick;
 
     public Robot() {
         myRobot = new RobotDrive(0, 1);
