@@ -27,7 +27,7 @@ public class Robot extends SampleRobot {
     private RobotDrive myRobot;
     private Joystick stick;
 
-    public Robot() {
+    public void robotInit() {
         myRobot = new RobotDrive(0, 1);
         myRobot.setExpiration(0.1);
         stick = new Joystick(0);
