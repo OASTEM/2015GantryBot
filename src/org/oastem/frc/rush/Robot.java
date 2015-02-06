@@ -210,7 +210,6 @@ public class Robot extends SampleRobot {
     public void operatorControl() {
     	
     	double liftPosition = 0;
-    	boolean canPressLift = true;
     	boolean canPressToggle = true;
     	boolean isIncrement = true;
     	
@@ -220,28 +219,24 @@ public class Robot extends SampleRobot {
             drive.arcadeDrive(joystick);
             
             //MOVE LIFT IN INCREMENTS
-            if (joystick.getRawButton(LIFT_UP) && canPressLift && isIncrement)
+            if (joystick.getRawButton(LIFT_UP) && isIncrement)
             {
-            	liftPosition += LIFT_MOVE_DISTANCE;
-            	canPressLift = false;
+            	liftPosition = LIFT_MOVE_DISTANCE;
             }
-            else if (joystick.getRawButton(LIFT_DOWN) && canPressLift && isIncrement)
+            else if (joystick.getRawButton(LIFT_DOWN) && isIncrement)
             {
-            	liftPosition -= LIFT_MOVE_DISTANCE;
-            	canPressLift = false;
+            	liftPosition = 0;
             }
             
             
             //MOVE LIFT GRADUALLY
-            if (joystick.getRawButton(LIFT_UP) && canPressLift && !isIncrement)
+            if (joystick.getRawButton(LIFT_UP)  && !isIncrement)
             {
             	liftPosition += LIFT_GRAD_DISTANCE;
-            	canPressLift = false;
             }
-            else if (joystick.getRawButton(LIFT_DOWN) && canPressLift && !isIncrement)
+            else if (joystick.getRawButton(LIFT_DOWN) && !isIncrement)
             {
             	liftPosition -= LIFT_GRAD_DISTANCE;
-            	canPressLift = false;
             }
             
             //TOGGLE BETWEEN LIFT MODES
@@ -262,9 +257,6 @@ public class Robot extends SampleRobot {
             }
             
             //MAKE SURE BUTTON NOT PRESSED
-            if (!joystick.getRawButton(LIFT_UP) && !joystick.getRawButton(LIFT_DOWN))
-            	canPressLift = true;
-            
             if (!joystick.getRawButton(LIFT_MODE_TOGGLE))
             	canPressToggle= true;
             
