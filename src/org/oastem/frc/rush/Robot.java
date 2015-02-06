@@ -2,9 +2,11 @@
 package org.oastem.frc.rush;
 
 
+import java.io.ObjectOutputStream.PutField;
+
+import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
@@ -14,20 +16,46 @@ import org.oastem.frc.control.DriveSystem;
 
 
 public class Robot extends SampleRobot {
-    private DriveSystem drive = DriveSystem.getInstance();
-    private Joystick joystick;
     
     // CHANGE THESE NUMBERS TO FINAL NUMBERS
-    private static final int DRIVE_RIGHT_FRONT = 0;
-    private static final int DRIVE_RIGHT_BACK = 1;
-    private static final int DRIVE_LEFT_FRONT = 2;
-    private static final int DRIVE_LEFT_BACK = 3;
+    // MOTOR PORTS
+    private static final int DRIVE_RIGHT_FRONT_PORT = 0;
+    private static final int DRIVE_RIGHT_BACK_PORT = 1;
+    private static final int DRIVE_LEFT_FRONT_PORT = 2;
+    private static final int DRIVE_LEFT_BACK_PORT = 3;
     
+    private static final int RIGHT_LIFT_PORT = 4;
+    private static final int LEFT_LIFT_PORT = 5;
+    
+    // MOTORS
     private Victor rightDriveFront;
     private Victor rightDriveBack;
     private Victor leftDriveFront;
     private Victor leftDriveBack;
     
+    private CANJaguar rightLift;
+    private CANJaguar leftLift;
+    
+    // JOYSTICK BUTTONS
+    private static final int LIFT_UP = 6;
+    private static final int LIFT_DOWN = 7;
+    private static final int LIFT_MODE_TOGGLE = 2;
+    
+    //CONSTANTS
+    private static final int PLAN_ENC_CPR = 497;
+    private static final int LIFT_HEIGHT_LIMIT = 40;
+    private static final double LIFT_GRAD_DISTANCE = .001;
+    private static final double LIFT_MOVE_DISTANCE = 15; // WE MIGHT NEED TO FINE TUNE THIS
+    
+    // 				WE NEED TO CHECK THIS DISTANCE
+    private static final double DISTANCE_PER_REV = 2.5 * Math.PI;
+    
+    //DECLARING OBJECTS
+    private DriveSystem drive = DriveSystem.getInstance();
+    private Joystick joystick;
+    private Dashboard dash;
+    
+    //AUTONOMOUS STATES
     public static final int START = 0;
 	public static final int GOTO_TOTE = 1;
 	public static final int UPLIFT = 2;
@@ -37,13 +65,28 @@ public class Robot extends SampleRobot {
 	//public static final int READY = 6;
 
     public void robotInit() {
-        drive.initializeDrive(DRIVE_LEFT_FRONT, DRIVE_LEFT_BACK, DRIVE_RIGHT_FRONT, DRIVE_RIGHT_BACK);
-        rightDriveFront = new Victor(DRIVE_RIGHT_FRONT);
-        rightDriveBack = new Victor(DRIVE_RIGHT_BACK);
-        leftDriveFront = new Victor(DRIVE_LEFT_FRONT);
-        leftDriveBack = new Victor(DRIVE_LEFT_BACK);
+        drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
+        rightDriveFront = new Victor(DRIVE_RIGHT_FRONT_PORT);
+        rightDriveBack = new Victor(DRIVE_RIGHT_BACK_PORT);
+        leftDriveFront = new Victor(DRIVE_LEFT_FRONT_PORT);
+        leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
+        
+        rightLift = new CANJaguar(RIGHT_LIFT_PORT);
+        leftLift = new CANJaguar(LEFT_LIFT_PORT);
+        
+        rightLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
+        rightLift.configForwardLimit(-LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
+        rightLift.configReverseLimit(1);
+        rightLift.enableControl(0);
+        
+        leftLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
+        leftLift.configForwardLimit(LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
+        leftLift.configReverseLimit(-1);
+        leftLift.enableControl(0);
         
         joystick = new Joystick(0);
+        
+        dash = new Dashboard();
     }
 
     /**
@@ -51,9 +94,9 @@ public class Robot extends SampleRobot {
      */
     public void autonomous() {
     	
-    	
-    	int state;
-    	int resetCount;
+    	double liftPosition = 0;
+    	int state = 0;
+    	int resetCount = 0;
     	long currTime = 0L;
     	long triggerStart = 0L;
     	
@@ -123,7 +166,7 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean hookUp(long currTime, long triggerStart) {
-		hook.upToTote(); //lol I wish this were already a method
+		hook.upToTote(); //lol I wish this were already a method // Instead of method, increase position
 		if(!checkHooked() || currTime - triggerStart > 2000L ) { //however long it takes to hook the tote
 			return false;
 		} else {
@@ -165,12 +208,87 @@ public class Robot extends SampleRobot {
      * Runs the motors with arcade steering.
      */
     public void operatorControl() {
+    	
+    	double liftPosition = 0;
+    	boolean canPressLift = true;
+    	boolean canPressToggle = true;
+    	boolean isIncrement = true;
+    	
+    	dash.putString("Lift Mode: ", "INCREMENT");
+    	
         while (isOperatorControl() && isEnabled()) {
             drive.arcadeDrive(joystick);
+            
+            //MOVE LIFT IN INCREMENTS
+            if (joystick.getRawButton(LIFT_UP) && canPressLift && isIncrement)
+            {
+            	liftPosition += LIFT_MOVE_DISTANCE;
+            	canPressLift = false;
+            }
+            else if (joystick.getRawButton(LIFT_DOWN) && canPressLift && isIncrement)
+            {
+            	liftPosition -= LIFT_MOVE_DISTANCE;
+            	canPressLift = false;
+            }
+            
+            
+            //MOVE LIFT GRADUALLY
+            if (joystick.getRawButton(LIFT_UP) && canPressLift && !isIncrement)
+            {
+            	liftPosition += LIFT_GRAD_DISTANCE;
+            	canPressLift = false;
+            }
+            else if (joystick.getRawButton(LIFT_DOWN) && canPressLift && !isIncrement)
+            {
+            	liftPosition -= LIFT_GRAD_DISTANCE;
+            	canPressLift = false;
+            }
+            
+            //TOGGLE BETWEEN LIFT MODES
+            if (joystick.getRawButton(LIFT_MODE_TOGGLE) && canPressToggle)
+            {
+            	if (isIncrement)
+            	{
+            		isIncrement = false;
+            		dash.putString("Lift Mode: ", "GRADUAL");
+            	}
+            	else
+            	{
+            		isIncrement = true;
+            		dash.putString("Lift Mode: ", "INCREMENT");
+            	}
+            	
+            	canPressToggle = false;
+            }
+            
+            //MAKE SURE BUTTON NOT PRESSED
+            if (!joystick.getRawButton(LIFT_UP) && !joystick.getRawButton(LIFT_DOWN))
+            	canPressLift = true;
+            
+            if (!joystick.getRawButton(LIFT_MODE_TOGGLE))
+            	canPressToggle= true;
+            
+            
+            this.setLift(liftPosition);
+            
+            
+            if ((liftPosition - leftLift.getPosition()) > 0)
+            	dash.putString("Lift: ", "UP");
+            else if ((liftPosition - leftLift.getPosition()) < 0)
+            	dash.putString("Lift: ", "DOWN");
+            else
+            	dash.putString("Lift: ", "STOPPED");
+            
+            
             Timer.delay(0.005);		// wait for a motor update time
         }
     }
 
+    private void setLift(double setPoint){
+    	rightLift.set(-setPoint / DISTANCE_PER_REV); // right is reflected
+    	leftLift.set(setPoint / DISTANCE_PER_REV);
+    }
+    
     /**
      * Runs during test mode
      */
