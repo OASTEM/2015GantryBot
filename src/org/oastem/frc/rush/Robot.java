@@ -19,10 +19,10 @@ public class Robot extends SampleRobot {
     
     // CHANGE THESE NUMBERS TO FINAL NUMBERS
     // MOTOR PORTS
-    private static final int DRIVE_RIGHT_FRONT_PORT = 0;
-    private static final int DRIVE_RIGHT_BACK_PORT = 1;
-    private static final int DRIVE_LEFT_FRONT_PORT = 2;
-    private static final int DRIVE_LEFT_BACK_PORT = 3;
+    private static final int DRIVE_RIGHT_FRONT_PORT = 2;
+    private static final int DRIVE_RIGHT_BACK_PORT = 3;
+    private static final int DRIVE_LEFT_FRONT_PORT = 0;
+    private static final int DRIVE_LEFT_BACK_PORT = 1;
     
     private static final int RIGHT_LIFT_PORT = 4;
     private static final int LEFT_LIFT_PORT = 5;
@@ -65,12 +65,16 @@ public class Robot extends SampleRobot {
 	//public static final int READY = 6;
 
     public void robotInit() {
-        drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
-        rightDriveFront = new Victor(DRIVE_RIGHT_FRONT_PORT);
-        rightDriveBack = new Victor(DRIVE_RIGHT_BACK_PORT);
-        leftDriveFront = new Victor(DRIVE_LEFT_FRONT_PORT);
+        //drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
+        drive.initializeDrive(DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_BACK_PORT);
+        drive.setSafety(false);
+    	/*rightDriveFront = new Victor(DRIVE_RIGHT_FRONT_PORT);
+        //rightDriveBack = new Victor(DRIVE_RIGHT_BACK_PORT);
+        //leftDriveFront = new Victor(DRIVE_LEFT_FRONT_PORT);
         leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
-        
+        */
+        drive.setInvertedDouble();
+        /*
         rightLift = new CANJaguar(RIGHT_LIFT_PORT);
         leftLift = new CANJaguar(LEFT_LIFT_PORT);
         
@@ -83,7 +87,7 @@ public class Robot extends SampleRobot {
         leftLift.configForwardLimit(LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
         leftLift.configReverseLimit(-1);
         leftLift.enableControl(0);
-        
+        */
         joystick = new Joystick(0);
         
         dash = new Dashboard();
@@ -217,7 +221,7 @@ public class Robot extends SampleRobot {
     	
         while (isOperatorControl() && isEnabled()) {
             drive.arcadeDrive(joystick);
-            
+            /*
             //MOVE LIFT IN INCREMENTS
             if (joystick.getRawButton(LIFT_UP) && isIncrement)
             {
@@ -271,7 +275,7 @@ public class Robot extends SampleRobot {
             else
             	dash.putString("Lift: ", "STOPPED");
             
-            
+            */
             Timer.delay(0.005);		// wait for a motor update time
         }
     }

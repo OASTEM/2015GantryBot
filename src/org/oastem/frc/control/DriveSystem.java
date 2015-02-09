@@ -7,6 +7,8 @@ package org.oastem.frc.control;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.RobotDrive.MotorType;
+
 import java.util.Hashtable;
 
 /**
@@ -93,5 +95,19 @@ public class DriveSystem {
     public void setSafety(boolean b){
         drive.setSafetyEnabled(false);
         if (hasSecondary) drive2.setSafetyEnabled(false);
+    }
+    
+    public void setInvertedDouble()
+    {
+    	drive.setInvertedMotor(MotorType.kRearLeft, true);
+    	drive.setInvertedMotor(MotorType.kRearRight, true);
+    }
+    
+    public void setInvertedQuad()
+    {
+    	drive.setInvertedMotor(MotorType.kFrontLeft, true);
+    	drive.setInvertedMotor(MotorType.kFrontRight, true);
+    	drive.setInvertedMotor(MotorType.kRearLeft, true);
+    	drive.setInvertedMotor(MotorType.kRearRight, true);
     }
 }
