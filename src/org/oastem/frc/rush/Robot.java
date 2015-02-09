@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.Victor;
 
 import org.oastem.frc.Dashboard;
 import org.oastem.frc.control.DriveSystem;
+import org.oastem.frc.sensor.QuadratureEncoder;
 
 
 public class Robot extends SampleRobot {
@@ -25,7 +26,14 @@ public class Robot extends SampleRobot {
     private static final int DRIVE_LEFT_BACK_PORT = 1;
     
     private static final int RIGHT_LIFT_PORT = 4;
-    private static final int LEFT_LIFT_PORT = 5;
+    private static final int LEFT_LIFT_PORT = 3;
+    
+    private static final int RIGHT_ENC_I = 4;
+    private static final int RIGHT_ENC_A = 5;
+    private static final int RIGHT_ENC_B = 3;
+    private static final int LEFT_ENC_I = 1;
+    private static final int LEFT_ENC_A = 2;
+    private static final int LEFT_ENC_B = 0;
     
     // MOTORS
     private Victor rightDriveFront;
@@ -54,6 +62,8 @@ public class Robot extends SampleRobot {
     private DriveSystem drive = DriveSystem.getInstance();
     private Joystick joystick;
     private Dashboard dash;
+    private QuadratureEncoder rightEnc;
+    private QuadratureEncoder leftEnc;
     
     //AUTONOMOUS STATES
     public static final int START = 0;
@@ -74,6 +84,9 @@ public class Robot extends SampleRobot {
         leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
         */
         drive.setInvertedDouble();
+        
+        rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, RIGHT_ENC_I);
+        leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, LEFT_ENC_I);
         /*
         rightLift = new CANJaguar(RIGHT_LIFT_PORT);
         leftLift = new CANJaguar(LEFT_LIFT_PORT);
@@ -221,6 +234,8 @@ public class Robot extends SampleRobot {
     	
         while (isOperatorControl() && isEnabled()) {
             drive.arcadeDrive(joystick);
+            dash.putNumber("Right Drive: ", rightEnc.getRaw());
+            dash.putNumber("Left Drive : ", leftEnc.getRaw());
             /*
             //MOVE LIFT IN INCREMENTS
             if (joystick.getRawButton(LIFT_UP) && isIncrement)
