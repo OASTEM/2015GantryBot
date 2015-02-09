@@ -94,12 +94,12 @@ public class Robot extends SampleRobot {
         leftDriveFront = new Victor(DRIVE_LEFT_FRONT_PORT);
         leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
         */
-        /*rightLift = new CANJaguar(RIGHT_LIFT_PORT);
+        rightLift = new CANJaguar(RIGHT_LIFT_PORT);
         leftLift = new CANJaguar(LEFT_LIFT_PORT);
         
         initRightLift();
         initLeftLift();
-        */
+        
         joystick = new Joystick(0);
         
         dash = new Dashboard();
