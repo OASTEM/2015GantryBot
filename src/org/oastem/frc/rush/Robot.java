@@ -230,6 +230,8 @@ public class Robot extends SampleRobot {
     	boolean canPressToggle = true;
     	boolean isIncrement = true;
     	
+    	rightEnc.reset();
+    	leftEnc.reset();
     	dash.putString("Lift Mode: ", "INCREMENT");
     	
         while (isOperatorControl() && isEnabled()) {
