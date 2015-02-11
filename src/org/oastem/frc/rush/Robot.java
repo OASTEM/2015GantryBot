@@ -28,8 +28,8 @@ public class Robot extends SampleRobot {
     private static final int RIGHT_LIFT_PORT = 4;
     private static final int LEFT_LIFT_PORT = 3;
     
-    private static final int RIGHT_ENC_I = 4;
-    private static final int RIGHT_ENC_A = 5;
+    private static final int RIGHT_ENC_I = 5;
+    private static final int RIGHT_ENC_A = 4;
     private static final int RIGHT_ENC_B = 3;
     private static final int LEFT_ENC_I = 1;
     private static final int LEFT_ENC_A = 2;
