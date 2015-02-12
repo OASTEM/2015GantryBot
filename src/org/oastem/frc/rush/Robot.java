@@ -155,6 +155,7 @@ public class Robot extends SampleRobot {
 		switch(state) {
 			case START:
 				//anything we need to go beforehand
+				state = GOTO_TOTE;
 				break;
 			case GOTO_TOTE:
 				if(moveForward(currTime, triggerStart)) {
