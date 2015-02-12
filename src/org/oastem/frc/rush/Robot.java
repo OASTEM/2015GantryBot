@@ -25,7 +25,7 @@ public class Robot extends SampleRobot {
     private static final int DRIVE_LEFT_BACK_PORT = 3;
     
     private static final int RIGHT_LIFT_PORT = 4;
-    private static final int LEFT_LIFT_PORT = 5;
+    private static final int LEFT_LIFT_PORT = 3;
     
     // MOTORS
     private Victor rightDriveFront;
@@ -252,6 +252,9 @@ public class Robot extends SampleRobot {
     	int saveState = 0;
     	
     	dash.putString("Lift Mode: ", "INCREMENT");
+    	rightLift.disableControl();
+    	rightLift.setPercentMode();
+    	rightLift.enableControl();
     	
         while (isOperatorControl() && isEnabled()) {
             //drive.arcadeDrive(joystick);
@@ -259,10 +262,10 @@ public class Robot extends SampleRobot {
         	// CHECK THE JAGUAR FOR RIGHT CAN ID
         	
         	// CHECK THE LIMIT SWITCH
-        	/*
-        	rightLift.setPercentMode();
-        	rightLift.enableControl();
-        	rightLift.set(joystick.getX());
+        	
+        	//rightLift.setPercentMode();
+        	//rightLift.enableControl();
+        	rightLift.set(joystick.getY());
         	dash.putBoolean("Limit Switch touched?", rightLift.getReverseLimitOK());
         	/////////////*/
             
