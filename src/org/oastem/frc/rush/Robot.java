@@ -107,8 +107,8 @@ public class Robot extends SampleRobot {
     }
 
     /**
-     * AUTONOMOUS
-     */
+     * Auto from before
+     *
     public void autonomous() {
     	
     	double liftPosition = 0;
@@ -125,10 +125,36 @@ public class Robot extends SampleRobot {
     }
 
     /*
-    private void joytonomousStates(long currTime) {
+	*This is autonomous pseudocode and it should hopefully logically work <3
+	
+	public static final int START = 0;
+	public static final int GOTO_TOTE = 1;
+	public static final int UPLIFT = 2;
+	public static final int RESET = 3;
+	public static final int MOVETO_AUTO = 4;
+	public static final int RELEASE = 5;
+	//public static final int READY = 6;
+	
+	private int state = 0;
+	private int resetCount = 0;
+	private long currTime = 0L;
+	private long triggerStart = 0L;
+	
+	public void autonomous() {
+		debug[0] = "Autonomous mode enabled";
+		while(isAutonomous() && isEnabled()) {
+			//imageProcessing();
+			currTime = System.currentTimeMillis();
+			joytonomousStates(currTime); 
+		}
+		Debug.log(debug);
+	}
+	
+	private void joytonomousStates(long currTime) {
 		switch(state) {
 			case START:
 				//anything we need to go beforehand
+				state = GOTO_TOTE;
 				break;
 			case GOTO_TOTE:
 				if(moveForward(currTime, triggerStart)) {
@@ -141,10 +167,15 @@ public class Robot extends SampleRobot {
 					if(hookUp(currTime, triggerStart)) {
 						triggerStart = currTime;
 						state = MOVETO_AUTO;
-					} else {
+					} 
+					if (currTime - triggerStart > 1750L) { // more adjust time as necessary
+						triggerStart = currTime;
 						state = RESET; //count attempts
 						resetCount++;
 					}
+				} else {
+					triggerStart = currTime
+					state = MOVETO_AUTO;
 				}
 				break;
 			case RESET:
@@ -157,7 +188,9 @@ public class Robot extends SampleRobot {
 				if(moveAuto(currTime, triggerStart)) {
 					triggerStart = currTime;
 					state = RELEASE;
-				} else {
+				} 
+				if (currTime - triggerStart > 5000L) { // adjust time as necesary
+					triggerStart = currTime;
 					state = READY;
 				}
 				break;
@@ -169,13 +202,13 @@ public class Robot extends SampleRobot {
 			case READY:
 				//how we want to get ready for operator control
 			default: 
-				//what to do if something fails
+				System.out.println("Kms");
 				break; //ihy
 		}
 	}
 	
 	private boolean moveForward(long currTime, long triggerStart) {
-		if(!robot.drive(distanceToTote) || currTime - triggerStart > 1500L) { //lol this isn't a method but should return T/F 
+		if(!robot.drive(distanceToTote) && currTime - triggerStart <= 1500L) { //lol this isn't a method but should return T/F 
 			return false;
 		} else {
 			return true;
@@ -183,17 +216,17 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean hookUp(long currTime, long triggerStart) {
-		hook.upToTote(); //lol I wish this were already a method // Instead of method, increase position
-		if(!checkHooked() || currTime - triggerStart > 2000L ) { //however long it takes to hook the tote
+		hook.upToTote(); //lol I wish this were already a method
+		if(!checkHooked()) { //however long it takes to hook the tote
 			return false;
 		} else {
 			return true;
-}
+		}
 	}
 	
 	private boolean redo(long currTime, long triggerStart) {
 		hook.downToUnhook();
-		if (!robot.drive(justSmallDistanceToReposition) || currTime - triggerStart > 1000L) {
+		if (!robot.drive(justSmallDistanceToReposition) && currTime - triggerStart <= 1000L) {
 			return false;
 		} else {
 			return true;
@@ -201,7 +234,7 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean moveAuto(long currTime, long triggerStart) {
-		if(!robot.drive(distanceToAuto) || !checkHooked() || currTime-triggerStart > 5000L) {
+		if(!robot.drive(distanceToAuto)) {
 			return false;
 		} else {
 			return true;
@@ -210,7 +243,7 @@ public class Robot extends SampleRobot {
 	
 	private boolean releaseTote(long currTime, long triggerStart) {
 		hook.downToUnhook();
-		if(checkHooked() || currTime - triggerStart > 1500L) {
+		if(checkHooked() && currTime - triggerStart <= 1500L) {
 			return false;
 		} else {
 			robot.reverse(justSmallDistanceToReposition);
@@ -230,6 +263,8 @@ public class Robot extends SampleRobot {
     	boolean canPressToggle = true;
     	boolean isIncrement = true;
     	
+    	rightEnc.reset();
+    	leftEnc.reset();
     	dash.putString("Lift Mode: ", "INCREMENT");
     	
         while (isOperatorControl() && isEnabled()) {
