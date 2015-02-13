@@ -83,7 +83,7 @@ public class Robot extends SampleRobot {
         //leftDriveFront = new Victor(DRIVE_LEFT_FRONT_PORT);
         leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
         */
-        drive.setInvertedDouble();
+        //drive.setInvertedDouble();
         
         rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, RIGHT_ENC_I);
         leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, LEFT_ENC_I);
@@ -333,6 +333,10 @@ public class Robot extends SampleRobot {
     private void setLift(double setPoint){
     	rightLift.set(-setPoint / DISTANCE_PER_REV); // right is reflected
     	leftLift.set(setPoint / DISTANCE_PER_REV);
+    }
+    
+    private void moveDistance(double distance){
+    	
     }
     
     /**

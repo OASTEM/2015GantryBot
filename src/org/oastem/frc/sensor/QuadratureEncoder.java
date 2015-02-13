@@ -33,18 +33,6 @@ public class QuadratureEncoder {
     }
     
     /**
-     * Creates an encoder using the two SIG inputs (A and B) and index.
-     * Default to use to just get encoder readings and not use getDistance().
-     * @param channelA I/0 SIG A.
-     * @param channelB I/0 SIG B.
-     * @param index I/0 SIG Index.
-     */
-    public QuadratureEncoder(int channelA, int channelB, int index)
-    {
-        enc = new Encoder(channelA, channelB, index);
-    }
-    
-    /**
      * Creates an encoder using the two SIG inputs (A and B) .
      * pulsesPerRev is used for getDistance() methods.
      * @param channelA I/0 SIG A.
