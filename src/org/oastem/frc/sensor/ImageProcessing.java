@@ -1,5 +1,5 @@
 package org.oastem.frc.sensor;
-
+/*
 //import org.bytedeco.javacpp.Loader;
 //import org.bytedeco.javacpp.opencv_objdetect;
 import org.bytedeco.javacv.*;
@@ -25,7 +25,7 @@ public class ImageProcessing {
 		grabber = new OpenCVFrameGrabber("");
 	}
 }
-
+*/
 /** 		Loader.load(opencv_objdetect.class);
 OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
 grabber.start();
