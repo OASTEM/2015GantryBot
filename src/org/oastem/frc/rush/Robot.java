@@ -369,7 +369,7 @@ public class Robot extends SampleRobot {
             case BIN_GRABBED :
             	dash.putString("Status: ", "in BIN_GRABBED");
             	setLift(BIN_DRIVE);
-            	if (Math.abs(rightLift.getPosition()/DISTANCE_PER_REV - BIN_DRIVE) < 0.5)// && leftLift.getPosition() == BIN_DRIVE)
+            	if (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BIN_DRIVE) < 0.5)// && leftLift.getPosition() == BIN_DRIVE)
             	{
             		if ((joystick.getRawButton(LIFT_UP) || joystick.getRawButton(TOTE_BUTTON)))
             			state = READY_FOR_BIN_TOTE;
@@ -380,7 +380,7 @@ public class Robot extends SampleRobot {
             case READY_FOR_NEXT :
             	dash.putString("Status: ", "in READY_FOR_NEXT");
             	setLift(SECOND_TOTE);
-            	if(Math.abs(rightLift.getPosition()/DISTANCE_PER_REV - SECOND_TOTE) < 0.5)// && leftLift.getPosition() == SECOND_TOTE)
+            	if(Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - SECOND_TOTE) < 0.5)// && leftLift.getPosition() == SECOND_TOTE)
             	{
             		if (joystick.getRawButton(LIFT_UP))
             			state = GRABBING_TOTE;
@@ -391,7 +391,7 @@ public class Robot extends SampleRobot {
             case READY_FOR_BIN_TOTE :
             	dash.putString("Status: ", "in READY_FOR_BIN_TOTE");
             	setLift(BIN_TOTE);
-            	if(Math.abs(rightLift.getPosition()/DISTANCE_PER_REV - BIN_TOTE) < 0.5)// && leftLift.getPosition() == BIN_TOTE)
+            	if(Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BIN_TOTE) < 0.5)// && leftLift.getPosition() == BIN_TOTE)
             	{
             		if (joystick.getRawButton(LIFT_UP))
             			state = GRABBING_TOTE;
