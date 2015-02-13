@@ -99,34 +99,35 @@ public class Robot extends SampleRobot {
         leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
         */
         rightLift = new CANJaguar(RIGHT_LIFT_PORT);
-        //leftLift = new CANJaguar(LEFT_LIFT_PORT);
+        leftLift = new CANJaguar(LEFT_LIFT_PORT);
         
         initRightLift();
-        //initLeftLift();
-        //rightLift.setPercentMode();
-        //rightLift.enableControl();
+        initLeftLift();
+        
         
         joystick = new Joystick(0);
         
         dash = new Dashboard();
+        System.out.println("Robot Initialized");
     }
     
     private void initRightLift()
     {
     	//rightLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
     	rightLift.setPercentMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR);
-        rightLift.configForwardLimit(3);//LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
-        rightLift.configReverseLimit(1);
-    	//rightLift.configSoftPositionLimits(1, -1);
+        rightLift.configForwardLimit(2);//LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
     	rightLift.configLimitMode(CANJaguar.LimitMode.SoftPositionLimits);
         rightLift.enableControl(0);
         
     }
     private void initLeftLift()
     {
-        leftLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
-        leftLift.configForwardLimit(LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
-        leftLift.configReverseLimit(1);
+        //leftLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
+    	leftLift.setPercentMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR);
+    	// BECAUSE REVERSE LIMIT IS WEIRD, NO LIMITS
+        //leftLift.configReverseLimit(-2);//LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
+        leftLift.configForwardLimit(2);
+        leftLift.configLimitMode(CANJaguar.LimitMode.SoftPositionLimits);
         leftLift.enableControl(0);
     }
 
@@ -253,32 +254,42 @@ public class Robot extends SampleRobot {
     	double liftPosition = 0;
     	boolean canPressToggle = true;
     	boolean isIncrement = true;
+    	boolean calibrated = true;
     	int state = 0;
     	int saveState = 0;
     	
-    	dash.putString("Lift Mode: ", "INCREMENT");
+    	
     	
         while (isOperatorControl() && isEnabled()) {
             //drive.arcadeDrive(joystick);
             
-        	if (joystick.getRawButton(3))
-        		dash.putBoolean("Calibreated", calibratedLift());
+        	if (joystick.getRawButton(3) || !calibrated)
+        	{
+        		calibrated = calibratedLift();
+        		dash.putBoolean("Calibreated", calibrated);
+        	}
         	
-        	// CHECK THE LIMIT SWITCH
         	
         	
         	//rightLift.set(joystick.getY());
-        	dash.putBoolean("Limit Switch forward", rightLift.getForwardLimitOK());
-        	dash.putBoolean("Limit Switch reverse", rightLift.getReverseLimitOK());
+        	dash.putBoolean("LEFT: Limit Switch forward", leftLift.getForwardLimitOK());
+        	dash.putBoolean("LEFT: Limit Switch reverse", leftLift.getReverseLimitOK());
+        	dash.putBoolean("RIGHT: Limit Switch forward", rightLift.getForwardLimitOK());
+        	dash.putBoolean("RIGHT: Limit Switch reverse", rightLift.getReverseLimitOK());
         	/////////////*/
             
         	// SPRING
         	// YO SPRING ACTUALLY READ THIS
         	// MAKE SURE TO BE PREPARED TO DISABLE
-        	dash.putNumber("Liftasdfasd: ", rightLift.getPosition());
+        	dash.putNumber("LEFT Lift", leftLift.getPosition());
+        	dash.putNumber("RIGHT Lift", rightLift.getPosition());
         	//rightLift.configForwardLimit(1);
         	//rightLift.set(-2);
-        	rightLift.set(joystick.getY());
+        	if(calibrated)
+        	{
+        		leftLift.set(joystick.getY());
+        		rightLift.set(joystick.getY());
+        	}
         	//*/
         	
         	// FIGURE OUT WHICH LIFT SIDE HAS TO BE REFLECTED
@@ -393,17 +404,17 @@ public class Robot extends SampleRobot {
 
     private void setLift(double setPoint){
     	rightLift.set(setPoint / DISTANCE_PER_REV); 
-    	leftLift.set(-setPoint / DISTANCE_PER_REV); // left is reflected
+    	leftLift.set(setPoint / DISTANCE_PER_REV); // left is reflected
     }
     
     private boolean calibratedLift()
     {
     	boolean ready = false;
     	rightLift.disableSoftPositionLimits();
-    	//leftLift.disableSoftPositionLimits();
-    	//leftLift.free();
+    	leftLift.disableSoftPositionLimits();
+    	leftLift.free();
     	rightLift.free();
-    	//leftLift = new CANJaguar(LEFT_LIFT_PORT);
+    	leftLift = new CANJaguar(LEFT_LIFT_PORT);
     	rightLift = new CANJaguar(RIGHT_LIFT_PORT);
     	if (rightLift.getReverseLimitOK())
     	{
@@ -413,22 +424,27 @@ public class Robot extends SampleRobot {
     	}
     	else
     	{
+    		rightLift.free();
+    		rightLift = new CANJaguar(RIGHT_LIFT_PORT);
     		initRightLift();
-    		return true;//ready = true;
+    		ready = true;
     	}
-    /*
-    	if (leftLift.getForwardLimitOK())
+    	//ready = true; // ***** GET RID OF THIS LATER ***** //
+    
+    	if (leftLift.getReverseLimitOK())
     	{
     		leftLift.setPercentMode();
     		leftLift.enableControl();
-    		leftLift.set(.25);
+    		leftLift.set(-1);
     	}
     	else
     	{
-    		initRightLift();
+    		leftLift.free();
+    		leftLift = new CANJaguar(LEFT_LIFT_PORT);
+    		initLeftLift();
     		if (ready)
     			return true;
-    	}*/
+    	}
     	return false;
     }
     
