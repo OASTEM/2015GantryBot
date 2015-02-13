@@ -216,8 +216,8 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean hookUp(long currTime, long triggerStart) {
-		hook.upToTote(); //lol I wish this were already a method
-		if(!checkHooked()) { //however long it takes to hook the tote
+		robot.upToHook(); //lol I wish this were already a method
+		if(!robot.checkHooked()) { //however long it takes to hook the tote
 			return false;
 		} else {
 			return true;
@@ -225,7 +225,7 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean redo(long currTime, long triggerStart) {
-		hook.downToUnhook();
+		robot.downToUnhook();
 		if (!robot.drive(justSmallDistanceToReposition) && currTime - triggerStart <= 1000L) {
 			return false;
 		} else {
@@ -242,8 +242,8 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean releaseTote(long currTime, long triggerStart) {
-		hook.downToUnhook();
-		if(checkHooked() && currTime - triggerStart <= 1500L) {
+		robot.downToUnhook();
+		if(robot.checkHooked() && currTime - triggerStart <= 1500L) {
 			return false;
 		} else {
 			robot.reverse(justSmallDistanceToReposition);
