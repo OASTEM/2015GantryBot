@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 
+import org.oastem.frc.sensor.*;
+
 import java.util.Hashtable;
 
 /**
@@ -19,13 +21,10 @@ public class DriveSystem {
     private static DriveSystem instance;
     private RobotDrive drive;
     private Victor[] raw;
+    private double[] speed;
     private boolean hasSecondary = false;
     private RobotDrive drive2;
     
-<<<<<<< HEAD
-    public DriveSystem() {
-=======
-	
 	private long currTime;
 	private long thisTime;
 	//private double[] speed;
@@ -35,15 +34,14 @@ public class DriveSystem {
 	private QuadratureEncoder enc;
 	
     protected DriveSystem() {
->>>>>>> aafbb0b6a60e289831aff47108d9315b26cb2231
         raw = new Victor[12];
     }
 
-	private DriveSystem(int channelA, int channelB, double pulses){
+	public DriveSystem(int channelA, int channelB, double pulses){
 		currTime = System.currentTimeMillis();
 		thisTime = currTime;
 		//acceleration = new Accelerator[12];
-		enc = new QuadratureEncoder(channelA, channelB, pulses)
+		enc = new QuadratureEncoder(channelA, channelB, pulses);
 		speed = new double[12];
 		//locs = new int[12];
 		raw = new Victor[12];
@@ -120,7 +118,7 @@ public class DriveSystem {
         if (hasSecondary) drive2.setSafetyEnabled(false);
     }
 
-	public boolean drive(double distance) {
+	public boolean forward(double distance) {
 		enc.reset();
 		if (enc.getDistance() < distance) {
 			drive.arcadeDrive(0.5, 0.5);
@@ -134,7 +132,7 @@ public class DriveSystem {
 	public boolean reverse(double distance) {
 		enc.reset();
 		if (Math.abs(enc.getDistance()) < distance) {
-			drive.arcadeDrive(-0.5 -0.5);
+			drive.arcadeDrive(-0.5, -0.5);
 			if (hasSecondary) drive2.arcadeDrive(-0.5, -0.5);
 			return false;
 		} else {

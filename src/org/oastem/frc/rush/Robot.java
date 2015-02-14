@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.Victor;
 import org.oastem.frc.Dashboard;
 import org.oastem.frc.control.DriveSystem;
 import org.oastem.frc.sensor.QuadratureEncoder;
-import org.oastem.frc.control.DriveSystemAccel;
 
 
 public class Robot extends SampleRobot {
@@ -67,17 +66,19 @@ public class Robot extends SampleRobot {
     private QuadratureEncoder leftEnc;
     
     //AUTONOMOUS STATES
+    /*
     public static final int START = 0;
 	public static final int GOTO_TOTE = 1;
 	public static final int UPLIFT = 2;
 	public static final int RESET = 3;
 	public static final int MOVETO_AUTO = 4;
 	public static final int RELEASE = 5;
+	*/
 	//public static final int READY = 6;
 
     public void robotInit() {
         //drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
-    	drive = new DriveSystem();
+    	drive = new DriveSystem(4, 5, 3.0);
         drive.initializeDrive(DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_BACK_PORT);
         drive.setSafety(false);
         
@@ -88,9 +89,10 @@ public class Robot extends SampleRobot {
         leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
         */
         //drive.setInvertedDouble();
-        
+        /*
         rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, RIGHT_ENC_I);
         leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, LEFT_ENC_I);
+        */
         /*
         rightLift = new CANJaguar(RIGHT_LIFT_PORT);
         leftLift = new CANJaguar(LEFT_LIFT_PORT);
@@ -110,50 +112,31 @@ public class Robot extends SampleRobot {
         dash = new Dashboard();
     }
 
-    /**
-     * Auto from before
-     *
-    public void autonomous() {
-    	
-    	double liftPosition = 0;
-    	int state = 0;
-    	int resetCount = 0;
-    	long currTime = 0L;
-    	long triggerStart = 0L;
-    	
-    	while(isAutonomous() && isEnabled()) {
-			currTime = System.currentTimeMillis();
-			//joytonomousStates(currTime); //not sure if this should be here
-		}
-    	
-    }
-
-    /*
-	*This is autonomous pseudocode and it should hopefully logically work <3
-	
+   
 	public static final int START = 0;
 	public static final int GOTO_TOTE = 1;
 	public static final int UPLIFT = 2;
 	public static final int RESET = 3;
 	public static final int MOVETO_AUTO = 4;
 	public static final int RELEASE = 5;
-	//public static final int READY = 6;
+	public static final int READY = 6;
 	
 	private int state = 0;
 	private int resetCount = 0;
 	private long currTime = 0L;
 	private long triggerStart = 0L;
 	
+	/*
+	
 	public void autonomous() {
-		debug[0] = "Autonomous mode enabled";
+		//debug[0] = "Autonomous mode enabled";
 		while(isAutonomous() && isEnabled()) {
 			//imageProcessing();
 			currTime = System.currentTimeMillis();
 			joytonomousStates(currTime); 
 		}
-		Debug.log(debug);
+		//Debug.log(debug);
 	}
-	
 	private void joytonomousStates(long currTime) {
 		switch(state) {
 			case START:
@@ -178,7 +161,7 @@ public class Robot extends SampleRobot {
 						resetCount++;
 					}
 				} else {
-					triggerStart = currTime
+					triggerStart = currTime;
 					state = MOVETO_AUTO;
 				}
 				break;
@@ -188,7 +171,7 @@ public class Robot extends SampleRobot {
 					state = UPLIFT;
 				}
 				break;
-			case MOVETO_AUTO;
+			case MOVETO_AUTO:
 				if(moveAuto(currTime, triggerStart)) {
 					triggerStart = currTime;
 					state = RELEASE;
@@ -212,7 +195,7 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean moveForward(long currTime, long triggerStart) {
-		if(!robot.drive(distanceToTote) && currTime - triggerStart <= 1500L) { //lol this isn't a method but should return T/F 
+		if(!drive.drive(10) && currTime - triggerStart <= 1500L) { //lol this isn't a method but should return T/F 
 			return false;
 		} else {
 			return true;
@@ -220,7 +203,7 @@ public class Robot extends SampleRobot {
 	}
 	
 	private boolean hookUp(long currTime, long triggerStart) {
-		robot.upToHook(); //lol I wish this were already a method
+		drive.upToHook(); //lol I wish this were already a method
 		if(!robot.checkHooked()) { //however long it takes to hook the tote
 			return false;
 		} else {
@@ -254,8 +237,8 @@ public class Robot extends SampleRobot {
 			return true;
 		}
 	}
-	
 	*/
+
     
     
     /**
@@ -272,9 +255,10 @@ public class Robot extends SampleRobot {
     	dash.putString("Lift Mode: ", "INCREMENT");
     	
         while (isOperatorControl() && isEnabled()) {
-            drive.arcadeDrive(joystick);
+            //drive.arcadeDrive(joystick);
             dash.putNumber("Right Drive: ", rightEnc.getRaw());
             dash.putNumber("Left Drive : ", leftEnc.getRaw());
+            drive.forward(10.0);
             /*
             //MOVE LIFT IN INCREMENTS
             if (joystick.getRawButton(LIFT_UP) && isIncrement)
