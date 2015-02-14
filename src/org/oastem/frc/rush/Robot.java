@@ -24,8 +24,8 @@ public class Robot extends SampleRobot {
     private static final int DRIVE_LEFT_FRONT_PORT = 2;
     private static final int DRIVE_LEFT_BACK_PORT = 3;
     
-    private static final int RIGHT_LIFT_PORT = 3;
-    private static final int LEFT_LIFT_PORT = 4;
+    private static final int RIGHT_LIFT_PORT = 4;
+    private static final int LEFT_LIFT_PORT = 3;
     
     // MOTORS
     private Victor rightDriveFront;
@@ -333,6 +333,7 @@ public class Robot extends SampleRobot {
         		slaveLeft = false;
             	if (calibratedLift())
             	{
+                	slaveLeft = true;
                     dash.putString("Status: ", "Calibrating...");
             		dash.putString("Status: ", "in RESET");
             		if (joystick.getRawButton(TOTE_BUTTON))
@@ -340,7 +341,6 @@ public class Robot extends SampleRobot {
             		if (joystick.getRawButton(BIN_BUTTON))
             			state = READY_FOR_BIN;
             	}
-            	slaveLeft = true;
             	break;
             case READY_FOR_TOTE :
             	dash.putString("Status: ", "in READY_FOR_TOTE");
