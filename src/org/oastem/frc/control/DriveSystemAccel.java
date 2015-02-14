@@ -29,11 +29,11 @@ public class DriveSystemAccel extends DriveSystem{
 		locs = new int[12];
 		
 	}
-	
+	/*
 	public DriveSystem getInstance() {
         return super.getInstance();
     }
-    
+    */
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
 		locs[0] = leftFront;
 		//locs[1] = leftRear;

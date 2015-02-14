@@ -36,16 +36,18 @@ public class DriveSystem {
     protected DriveSystem() {
         raw = new Victor[12];
     }
-
+    
 	public DriveSystem(int channelA, int channelB, double pulses){
 		currTime = System.currentTimeMillis();
 		thisTime = currTime;
 		//acceleration = new Accelerator[12];
-		enc = new QuadratureEncoder(channelA, channelB, pulses);
+		//enc = new QuadratureEncoder(channelA, channelB, pulses);
 		speed = new double[12];
 		//locs = new int[12];
 		raw = new Victor[12];
+		getInstance();
 	}
+	
     
     public DriveSystem getInstance() {
         if (instance == null) {

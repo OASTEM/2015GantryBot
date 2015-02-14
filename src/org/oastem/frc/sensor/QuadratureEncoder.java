@@ -228,7 +228,7 @@ public class QuadratureEncoder {
      * This distance can be any unit, but this will be the unit used in getDistance().
      * @param distancePerDriverRevolution Distance traveled in one rotation of the encoder shaft.
      */
-    public void setDistancePerPulse(int distancePerDriverRevolution)
+    public void setDistancePerPulse(double distancePerDriverRevolution)
     {
         enc.setDistancePerPulse(distancePerDriverRevolution / pulsesPerRevolution);
     }
