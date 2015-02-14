@@ -43,4 +43,17 @@ public class Pulley(){
         right.set(pos);
         left.set(pos);
     }
+
+	public boolean upToHook() {
+		
+	}
+	
+	public boolean downToUnhook() {
+		
+	}
+	
+	public boolean checkHooked() {
+		
+	}
+    
 }
