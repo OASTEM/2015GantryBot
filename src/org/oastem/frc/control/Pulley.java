@@ -8,17 +8,17 @@ import edu.wpi.first.wpilibj.CANJaguar;
  * @author joyhsu0504
  * @author bnguyen654
  */
-
+/*
 public class Pulley(){
-    protected static Pulley instance;
+    private static Pulley instance;
     
-    protected CANJaguar right, left;
+    private CANJaguar right, left;
     
-    protected int codesPerRev, distPerRev;
+    private int codesPerRev, distPerRev;
     
-    protected final int MOVE_CONSTANT = 1/distPerRev;
+    private final int MOVE_CONSTANT = 1/distPerRev;
     
-    protected Pulley(){
+    private Pulley(){
     }
     
     public static Pulley getInstance(){
@@ -27,6 +27,7 @@ public class Pulley(){
         }
             return instance;
     }
+    
     public void init(int rightId, int leftId, double p, double i, double d){
         right = new CANJaguar(rightId);
         right.setPositionMode(CANJaguar.kQuadEncoder, codesPerRev, p, i, ,d);
@@ -56,4 +57,4 @@ public class Pulley(){
 		
 	}
     
-}
+}*/

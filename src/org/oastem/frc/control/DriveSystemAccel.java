@@ -1,38 +1,37 @@
 package org.oastem.frc.control;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.Victor;
-import java.util.Hashtable;
-
+import org.oastem.frc.sensor.*;
 
 
 /**
  * @author ThePotatoGuy
  * @author joyhsu0504
  */
+
 public class DriveSystemAccel extends DriveSystem{
 	
 	private long currTime;
 	private long thisTime;
-	//private double[] speed;
+	private double[] speed;
 	private int[] locs;
 	private Accelerator[] acceleration;
 	private int locCount = 4;
 	private QuadratureEncoder enc;
 	
-	private DriveSystem(int channelA, int channelB, double pulses){
+	private DriveSystemAccel(int channelA, int channelB, double pulses){
+		super();
 		currTime = System.currentTimeMillis();
 		thisTime = currTime;
 		acceleration = new Accelerator[12];
-		enc = new QuadratureEncoder(channelA, channelB, pulses)
+		enc = new QuadratureEncoder(channelA, channelB, pulses);
 		speed = new double[12];
 		locs = new int[12];
-		super();
+		
 	}
 	
-	public static DriveSystem getInstance() {
-        return super.getInstance;
+	public DriveSystem getInstance() {
+        return super.getInstance();
     }
     
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
@@ -72,22 +71,24 @@ public class DriveSystemAccel extends DriveSystem{
 		super.tankDrive(x,y);
     }
 
-	public boolean drive(double distance) {
+	public boolean drive(double distance, double x, double y) {
 		enc.reset();
 		x = acceleration[locs[0]].accelerateValue(0.5);
 		y = acceleration[locs[2]].accelerateValue(0.5);
 		if (enc.getDistance() < distance) {
+			super.arcadeDrive(x, y);
 			return false;
 		} else {
 			return true;
 		}
 	}
 
-	public boolean reverse(double distance) {
+	public boolean reverse(double distance, double x, double y) {
 		enc.reset();
 		x = acceleration[locs[0]].accelerateValue(-0.5);
 		y = acceleration[locs[2]].accelerateValue(-0.5);
 		if (Math.abs(enc.getDistance()) < distance) {
+			super.arcadeDrive(x, y);
 			return false;
 		} else {
 			return true;

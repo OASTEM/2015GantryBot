@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Victor;
 import org.oastem.frc.Dashboard;
 import org.oastem.frc.control.DriveSystem;
 import org.oastem.frc.sensor.QuadratureEncoder;
+import org.oastem.frc.control.DriveSystemAccel;
 
 
 public class Robot extends SampleRobot {
@@ -28,8 +29,8 @@ public class Robot extends SampleRobot {
     private static final int RIGHT_LIFT_PORT = 4;
     private static final int LEFT_LIFT_PORT = 3;
     
-    private static final int RIGHT_ENC_I = 5;
-    private static final int RIGHT_ENC_A = 4;
+    private static final int RIGHT_ENC_I = 4;
+    private static final int RIGHT_ENC_A = 5;
     private static final int RIGHT_ENC_B = 3;
     private static final int LEFT_ENC_I = 1;
     private static final int LEFT_ENC_A = 2;
@@ -59,7 +60,7 @@ public class Robot extends SampleRobot {
     private static final double DISTANCE_PER_REV = 2.5 * Math.PI;
     
     //DECLARING OBJECTS
-    private DriveSystem drive = DriveSystem.getInstance();
+    private DriveSystem drive;
     private Joystick joystick;
     private Dashboard dash;
     private QuadratureEncoder rightEnc;
@@ -76,8 +77,11 @@ public class Robot extends SampleRobot {
 
     public void robotInit() {
         //drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
+    	drive = new DriveSystem();
         drive.initializeDrive(DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_BACK_PORT);
         drive.setSafety(false);
+        
+        
     	/*rightDriveFront = new Victor(DRIVE_RIGHT_FRONT_PORT);
         //rightDriveBack = new Victor(DRIVE_RIGHT_BACK_PORT);
         //leftDriveFront = new Victor(DRIVE_LEFT_FRONT_PORT);
