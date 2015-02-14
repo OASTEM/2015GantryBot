@@ -48,9 +48,9 @@ public class Robot extends SampleRobot {
     
     //CONSTANTS
     private static final int PLAN_ENC_CPR = 497;
-    private static final int LIFT_HEIGHT_LIMIT = 43;
-    private static final double LIFT_GRAD_DISTANCE = 1/ 6.5;
-    private static final double LIFT_MOVE_DISTANCE = 15; // WE MIGHT NEED TO FINE TUNE THIS
+    private static final int LIFT_HEIGHT_LIMIT = 39;
+    private static final double LIFT_GRAD_DISTANCE = .05;
+    private static final double LIFT_BUFFER = .5;
     
     // 				WE NEED TO CHECK THIS DISTANCE
     private static final double DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
@@ -73,9 +73,9 @@ public class Robot extends SampleRobot {
 	// CLAW HEIGHTS
 	private static final int BOTTOM = 0;
 	private static final int ABOVE_TOTE = 10;
-	private static final int TOTE_DRIVE = 4;
+	private static final int TOTE_DRIVE = 6;
 	private static final int SECOND_TOTE = 15;
-	private static final int GRAB_BIN = 1;
+	private static final int GRAB_BIN = 12;
 	private static final int BIN_DRIVE = 18;
 	private static final int BIN_TOTE = 29;
 	
@@ -103,16 +103,16 @@ public class Robot extends SampleRobot {
     		System.out.println("Right freed");
     		rightLift.free();	
     	}
-    	/*if (leftLift != null)
+    	if (leftLift != null)
     	{
     		System.out.println("Left freed");
     		leftLift.free();
-    	}*/
+    	}
     	rightLift = new CANJaguar(RIGHT_LIFT_PORT);
-        //leftLift = new CANJaguar(LEFT_LIFT_PORT);
+        leftLift = new CANJaguar(LEFT_LIFT_PORT);
         
         initRightLift();
-        //initLeftLift();
+        initLeftLift();
         
         
         joystick = new Joystick(0);
@@ -123,6 +123,8 @@ public class Robot extends SampleRobot {
     
     private void initRightLift()
     {
+    	rightLift.free();
+        rightLift = new CANJaguar(RIGHT_LIFT_PORT);
     	rightLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
     	//rightLift.setPercentMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR);
         rightLift.configForwardLimit(LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
@@ -132,11 +134,13 @@ public class Robot extends SampleRobot {
     }
     private void initLeftLift()
     {
-        //leftLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
-    	leftLift.setPercentMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR);
+    	leftLift.free();
+        leftLift = new CANJaguar(LEFT_LIFT_PORT);
+        leftLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
+    	//leftLift.setPercentMode();
     	// BECAUSE REVERSE LIMIT IS WEIRD, NO LIMITS
         //leftLift.configReverseLimit(-2);//LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
-        leftLift.configForwardLimit(2);
+        leftLift.configForwardLimit(LIFT_HEIGHT_LIMIT/DISTANCE_PER_REV);
         leftLift.configLimitMode(CANJaguar.LimitMode.SoftPositionLimits);
         leftLift.enableControl(0);
     }
@@ -265,6 +269,7 @@ public class Robot extends SampleRobot {
     	boolean canPressToggle = true;
     	boolean isIncrement = true;
     	boolean calibrated = true;
+    	boolean slaveLeft = true;
     	int state = 0;
     	int saveState = 0;
     	
@@ -278,21 +283,26 @@ public class Robot extends SampleRobot {
         		calibrated = calibratedLift();
         		dash.putBoolean("Calibreated", calibrated);
         	}
-        	*/
+        	else{
+                rightLift.set(joystick.getY());
+        	}*/
         	
+        	
+        	
+        	
+        	if (slaveLeft)
+        		doSlave();
         	
         	//rightLift.set(joystick.getY());
-        	//dash.putBoolean("LEFT: Limit Switch forward", leftLift.getForwardLimitOK());
-        	//dash.putBoolean("LEFT: Limit Switch reverse", leftLift.getReverseLimitOK());
+        	dash.putBoolean("LEFT: Limit Switch forward", leftLift.getForwardLimitOK());
+        	dash.putBoolean("LEFT: Limit Switch reverse", leftLift.getReverseLimitOK());
         	dash.putBoolean("RIGHT: Limit Switch forward", rightLift.getForwardLimitOK());
         	dash.putBoolean("RIGHT: Limit Switch reverse", rightLift.getReverseLimitOK());
         	/////////////*/
             
-        	// SPRING
-        	// YO SPRING ACTUALLY READ THIS
         	// MAKE SURE TO BE PREPARED TO DISABLE
-        	//dash.putNumber("LEFT Lift", leftLift.getPosition());
-        	dash.putNumber("RIGHT Lift", (rightLift.getPosition()/DISTANCE_PER_REV));
+        	dash.putNumber("LEFT Lift", leftLift.getPosition());
+        	dash.putNumber("RIGHT Lift", (rightLift.getPosition()));
         	//rightLift.configForwardLimit(1);
         	//rightLift.set(-2);
         	/*
@@ -315,13 +325,16 @@ public class Robot extends SampleRobot {
         	// FIGURE OUT WHICH LIFT SIDE HAS TO BE REFLECTED
         	// CHANGE INIT AND SET
         	
-            
-            //dash.putString("Status: ", "Calibrating...");
+        	
+        	
             switch(state)
             {
             case RESET :
+        		slaveLeft = false;
             	if (calibratedLift())
             	{
+                	slaveLeft = true;
+                    dash.putString("Status: ", "Calibrating...");
             		dash.putString("Status: ", "in RESET");
             		if (joystick.getRawButton(TOTE_BUTTON))
             			state = READY_FOR_TOTE;
@@ -332,7 +345,7 @@ public class Robot extends SampleRobot {
             case READY_FOR_TOTE :
             	dash.putString("Status: ", "in READY_FOR_TOTE");
             	setLift(ABOVE_TOTE);
-            	if (joystick.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - ABOVE_TOTE) < 0.5))// && leftLift.getPosition() == ABOVE_TOTE)
+            	if (joystick.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - ABOVE_TOTE) < LIFT_BUFFER))// && leftLift.getPosition() == ABOVE_TOTE)
             		state = GRABBING_TOTE;
             	if (joystick.getRawButton(BIN_BUTTON))
         			state = READY_FOR_BIN;
@@ -340,7 +353,7 @@ public class Robot extends SampleRobot {
             case READY_FOR_BIN :
             	dash.putString("Status: ", "in READY_FOR_BIN");
             	setLift(GRAB_BIN);
-            	if (joystick.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - GRAB_BIN) < 0.5))// && //leftLift.getPosition() == GRAB_BIN)
+            	if (joystick.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - GRAB_BIN) < LIFT_BUFFER))// && //leftLift.getPosition() == GRAB_BIN)
             		state = BIN_GRABBED;
             	if (joystick.getRawButton(TOTE_BUTTON))
         			state = READY_FOR_TOTE;
@@ -348,7 +361,7 @@ public class Robot extends SampleRobot {
             case GRABBING_TOTE :
             	dash.putString("Status: ", "in GRABBING_TOTE");
             	setLift(BOTTOM);
-            	if (joystick.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BOTTOM) < 0.5))// && leftLift.getPosition() == BOTTOM)
+            	if (joystick.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BOTTOM) < LIFT_BUFFER))// && leftLift.getPosition() == BOTTOM)
             		state = TOTE_GRABBED;
             	if (joystick.getRawButton(BIN_BUTTON))
         			state = READY_FOR_BIN;
@@ -358,7 +371,7 @@ public class Robot extends SampleRobot {
             case TOTE_GRABBED :
             	dash.putString("Status: ", "in TOTE_GRABBED");
             	setLift(TOTE_DRIVE);
-            	if (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - TOTE_DRIVE) < 0.5)// && leftLift.getPosition() == TOTE_DRIVE)
+            	if (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - TOTE_DRIVE) < LIFT_BUFFER)// && leftLift.getPosition() == TOTE_DRIVE)
             	{
             		if (joystick.getRawButton(LIFT_UP))
             			state = READY_FOR_NEXT;
@@ -369,7 +382,7 @@ public class Robot extends SampleRobot {
             case BIN_GRABBED :
             	dash.putString("Status: ", "in BIN_GRABBED");
             	setLift(BIN_DRIVE);
-            	if (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BIN_DRIVE) < 0.5)// && leftLift.getPosition() == BIN_DRIVE)
+            	if (Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BIN_DRIVE) < LIFT_BUFFER)// && leftLift.getPosition() == BIN_DRIVE)
             	{
             		if ((joystick.getRawButton(LIFT_UP) || joystick.getRawButton(TOTE_BUTTON)))
             			state = READY_FOR_BIN_TOTE;
@@ -380,7 +393,7 @@ public class Robot extends SampleRobot {
             case READY_FOR_NEXT :
             	dash.putString("Status: ", "in READY_FOR_NEXT");
             	setLift(SECOND_TOTE);
-            	if(Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - SECOND_TOTE) < 0.5)// && leftLift.getPosition() == SECOND_TOTE)
+            	if(Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - SECOND_TOTE) < LIFT_BUFFER)// && leftLift.getPosition() == SECOND_TOTE)
             	{
             		if (joystick.getRawButton(LIFT_UP))
             			state = GRABBING_TOTE;
@@ -391,7 +404,7 @@ public class Robot extends SampleRobot {
             case READY_FOR_BIN_TOTE :
             	dash.putString("Status: ", "in READY_FOR_BIN_TOTE");
             	setLift(BIN_TOTE);
-            	if(Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BIN_TOTE) < 0.5)// && leftLift.getPosition() == BIN_TOTE)
+            	if(Math.abs(rightLift.getPosition()*DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER)// && leftLift.getPosition() == BIN_TOTE)
             	{
             		if (joystick.getRawButton(LIFT_UP))
             			state = GRABBING_TOTE;
@@ -402,23 +415,26 @@ public class Robot extends SampleRobot {
             case MANUAL :
             	dash.putString("Status: ", "EMANUEL");
             	if (joystick.getRawButton(LIFT_UP))
-            		setLift(Math.abs(rightLift.get()) + LIFT_GRAD_DISTANCE);
+            		setLift(Math.abs(rightLift.get() * DISTANCE_PER_REV) + LIFT_GRAD_DISTANCE);
             	else if (joystick.getRawButton(LIFT_DOWN))
-            		setLift(Math.abs(rightLift.get()) - LIFT_GRAD_DISTANCE);
+            		setLift(Math.abs(rightLift.get() * DISTANCE_PER_REV) - LIFT_GRAD_DISTANCE);
             		
             	if (joystick.getRawButton(EXIT_MAN_BUTTON))
             		state = saveState;
             	break;
             }
             
+            dash.putNumber("Save state", saveState);
+            dash.putNumber("State", state);
+            
             if (joystick.getRawButton(RESET_BUTTON))
             	state = RESET;
         	
-        	if (joystick.getRawButton(MAN_BUTTON))
+        	if (joystick.getRawButton(MAN_BUTTON) && state != MANUAL)
         	{
         		saveState = state;
         		state = MANUAL;
-        	}//*/
+        	}
         }
     }
 
@@ -427,14 +443,19 @@ public class Robot extends SampleRobot {
     	//leftLift.set(setPoint / DISTANCE_PER_REV); // left is reflected
     }
     
+    private void doSlave()
+    {
+    	leftLift.set(rightLift.getPosition()-(0.5/DISTANCE_PER_REV));
+    }
+    
     private boolean calibratedLift()
     {
     	boolean ready = false;
     	rightLift.disableSoftPositionLimits();
-    	//leftLift.disableSoftPositionLimits();
-    	//leftLift.free();
+    	leftLift.disableSoftPositionLimits();
+    	leftLift.free();
     	rightLift.free();
-    	//leftLift = new CANJaguar(LEFT_LIFT_PORT);
+    	leftLift = new CANJaguar(LEFT_LIFT_PORT);
     	rightLift = new CANJaguar(RIGHT_LIFT_PORT);
     	if (rightLift.getReverseLimitOK())
     	{
@@ -447,10 +468,10 @@ public class Robot extends SampleRobot {
     		rightLift.free();
     		rightLift = new CANJaguar(RIGHT_LIFT_PORT);
     		initRightLift();
-    		return true;//ready = true;
+    		ready = true;
     	}
     	//ready = true; // ***** GET RID OF THIS LATER ***** //
-    /*
+    
     	if (leftLift.getReverseLimitOK())
     	{
     		leftLift.setPercentMode();
@@ -464,7 +485,7 @@ public class Robot extends SampleRobot {
     		initLeftLift();
     		if (ready)
     			return true;
-    	}*/
+    	}
     	return false;
     }
     
