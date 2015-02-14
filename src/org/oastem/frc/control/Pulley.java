@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * @author bnguyen654
  */
 
+/**
 public class Pulley{
     private static Pulley instance;
     
@@ -104,4 +105,4 @@ public class Pulley{
 		return in/distPerRev;
 	}
     
-}
+}*/
