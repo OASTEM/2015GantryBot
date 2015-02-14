@@ -33,6 +33,18 @@ public class QuadratureEncoder {
     }
     
     /**
+     * Creates an encoder using the two SIG inputs (A and B) and index.
+     * Default to use to just get encoder readings and not use getDistance().
+     * @param channelA I/0 SIG A.
+     * @param channelB I/0 SIG B.
+     * @param index I/0 SIG Index.
+     */
+    public QuadratureEncoder(int channelA, int channelB, int index)
+    {
+        enc = new Encoder(channelA, channelB, index);
+    }
+    
+    /**
      * Creates an encoder using the two SIG inputs (A and B) .
      * pulsesPerRev is used for getDistance() methods.
      * @param channelA I/0 SIG A.
@@ -72,7 +84,7 @@ public class QuadratureEncoder {
      * @param pulsesPerRev Number of pulses for a revolution of the motor (look at instance variable).
      */
     public QuadratureEncoder(int channelA, int channelB, boolean isReversed,
-                            int scaleValue, double pulsesPerRev)
+                            double scaleValue, double pulsesPerRev)
     {
         CounterBase.EncodingType encType = CounterBase.EncodingType.k4X;
         
@@ -80,8 +92,6 @@ public class QuadratureEncoder {
             encType = CounterBase.EncodingType.k1X;
         else if (scaleValue == 2)
             encType = CounterBase.EncodingType.k2X;
-        else if (scaleValue == 4)
-            encType = CounterBase.EncodingType.k4X;
         
         enc = new Encoder(channelA, channelB, isReversed, encType);
         
@@ -97,10 +107,41 @@ public class QuadratureEncoder {
      * @param scaleValue getRaw() values are divided by multiples of 1, 2, or 4 to increase accuracy.
      * @param pulsesPerRev Number of pulses for a revolution of the motor (look at instance variable).
      */
-    public QuadratureEncoder(int channelA, int channelB, int scaleValue, double pulsesPerRev)
+    public QuadratureEncoder(int channelA, int channelB, double scaleValue, double pulsesPerRev)
     {
         this(channelA, channelB, false, scaleValue, pulsesPerRev);
     }
+    
+    /**
+     * Creates an encoder using the two SIG inputs (A and B) .
+     * pulsesPerRev is used for getDistance() methods.
+     * @param channelA I/0 SIG A.
+     * @param channelB I/O SIG B.
+     * @param index I/0 SIG Index
+     * @param pulsesPerRev Number of pulses for a revolution of the motor (look at instance variable).
+     */
+    public QuadratureEncoder(int channelA, int channelB, int index, double pulsesPerRev)
+    {
+        enc = new Encoder(channelA, channelB, index);
+        pulsesPerRevolution = pulsesPerRev;
+    }
+    
+    /**
+     * Creates an encoder using the two SIG inputs (A and B).
+     * Also allows the encoder to be reversed.
+     * pulsesPerRev is used for getDistance() methods.
+     * @param channelA I/0 SIG A.
+     * @param channelB I/O SIG B.
+     * @param index I/0 SIG Index
+     * @param isReversed When true, returned values are inverted.
+     * @param pulsesPerRev Number of pulses for a revolution of the motor (look at instance variable).
+     */
+    public QuadratureEncoder(int channelA, int channelB, int index, boolean isReversed, double pulsesPerRev)
+    {
+        enc = new Encoder(channelA, channelB, index, isReversed);
+        pulsesPerRevolution = pulsesPerRev;
+    }
+    
     
     /**
      * Free the resources used by this object.
