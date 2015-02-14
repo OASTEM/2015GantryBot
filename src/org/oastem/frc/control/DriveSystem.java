@@ -22,9 +22,28 @@ public class DriveSystem {
     protected boolean hasSecondary = false;
     protected RobotDrive drive2;
     
+	
+	private long currTime;
+	private long thisTime;
+	//private double[] speed;
+	//private int[] locs;
+	//private Accelerator[] acceleration;
+	//private int locCount = 4;
+	private QuadratureEncoder enc;
+	
     protected DriveSystem() {
         raw = new Victor[12];
     }
+
+	private DriveSystem(int channelA, int channelB, double pulses){
+		currTime = System.currentTimeMillis();
+		thisTime = currTime;
+		//acceleration = new Accelerator[12];
+		enc = new QuadratureEncoder(channelA, channelB, pulses)
+		speed = new double[12];
+		//locs = new int[12];
+		raw = new Victor[12];
+	}
     
     public static DriveSystem getInstance() {
         if (instance == null) {
@@ -96,6 +115,28 @@ public class DriveSystem {
         drive.setSafetyEnabled(false);
         if (hasSecondary) drive2.setSafetyEnabled(false);
     }
+
+	public boolean drive(double distance) {
+		enc.reset();
+		if (enc.getDistance() < distance) {
+			drive.arcadeDrive(0.5, 0.5);
+			if (hasSecondary) drive2.arcadeDrive(0.5, 0.5);
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	public boolean reverse(double distance) {
+		enc.reset();
+		if (Math.abs(enc.getDistance()) < distance) {
+			drive.arcadeDrive(-0.5 -0.5);
+			if (hasSecondary) drive2.arcadeDrive(-0.5, -0.5);
+			return false;
+		} else {
+			return true;
+		}
+	}
     
     public void setInvertedDouble()
     {
