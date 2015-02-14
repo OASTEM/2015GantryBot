@@ -1,14 +1,13 @@
 package org.oastem.frc.sensor;
 
-//import org.bytedeco.javacpp.Loader;
-//import org.bytedeco.javacpp.opencv_objdetect;
-/*import org.bytedeco.javacv.*;
-import org.bytedeco.javacv.FrameGrabber.Exception;
+/*
+import org.opencv.*;
 
-import static org.bytedeco.javacpp.opencv_core.*;
-//import static org.bytedeco.javacpp.opencv_imgproc.*;
 
 public class ImageProcessing {
+	static {
+    	System.load("/usr/local/lib/lib_OpenCV/java/libopencv_java2410.so");
+	}
 	private OpenCVFrameGrabber grabber;
 	private IplImage grabbedImage;
 	public void checkWebcam() {
@@ -25,7 +24,7 @@ public class ImageProcessing {
 		grabber = new OpenCVFrameGrabber("");
 	}
 }
-
+*/
 /** 		Loader.load(opencv_objdetect.class);
 OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
 grabber.start();
