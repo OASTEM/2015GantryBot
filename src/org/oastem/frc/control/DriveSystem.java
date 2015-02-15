@@ -41,7 +41,9 @@ public class DriveSystem {
 		currTime = System.currentTimeMillis();
 		thisTime = currTime;
 		//acceleration = new Accelerator[12];
-		//enc = new QuadratureEncoder(channelA, channelB, pulses);
+		enc = new QuadratureEncoder(channelA, channelB, pulses);
+		enc.setDistancePerPulse(6 * Math.PI);
+		enc.reset();
 		speed = new double[12];
 		//locs = new int[12];
 		raw = new Victor[12];
@@ -120,24 +122,24 @@ public class DriveSystem {
         if (hasSecondary) drive2.setSafetyEnabled(false);
     }
 
-	public boolean forward(double distance) {
-		enc.reset();
+	public boolean reverse(double distance) {
 		if (enc.getDistance() < distance) {
 			drive.arcadeDrive(0.5, 0.5);
 			if (hasSecondary) drive2.arcadeDrive(0.5, 0.5);
 			return false;
 		} else {
+			drive.arcadeDrive(0, 0);
 			return true;
 		}
 	}
 
-	public boolean reverse(double distance) {
-		enc.reset();
+	public boolean forward(double distance) {
 		if (Math.abs(enc.getDistance()) < distance) {
-			drive.arcadeDrive(-0.5, -0.5);
+			drive.arcadeDrive(-0.35, -0.35);
 			if (hasSecondary) drive2.arcadeDrive(-0.5, -0.5);
 			return false;
 		} else {
+			drive.arcadeDrive(0, 0);
 			return true;
 		}
 	}

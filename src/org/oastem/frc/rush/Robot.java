@@ -5,6 +5,7 @@ package org.oastem.frc.rush;
 import java.io.ObjectOutputStream.PutField;
 
 import edu.wpi.first.wpilibj.CANJaguar;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GearTooth;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -56,16 +57,18 @@ public class Robot extends SampleRobot {
     private static final int RESET_BUTTON = 3;
     private static final int MAN_BUTTON = 8;
     private static final int EXIT_MAN_BUTTON = 9;
+    private static final int EMERGENCY_STOP = 11;
     
     // CONSTANTS
     private static final int PLAN_ENC_CPR = 497;
     private static final int DRIVE_ENC_CPR = 2048;
     private static final int LIFT_HEIGHT_LIMIT = 39;
     private static final double LIFT_GRAD_DISTANCE = .05;
-    private static final double LIFT_BUFFER = .5;
+    private static final double LIFT_BUFFER = .2;
     private static final double LIFT_DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
     private static final double DRIVE_CIRCUMFERENCE = 6 * Math.PI;
-    private static final double DRIVE_GEAR_RATIO = 8.45/1;
+    private static final double DRIVE_GEAR_RATIO = 1/8.45;
+    private static final double RIGHT_LIFT_COMP = .5;
     
     // instance variables
     private static double joyScale = 1.0;
@@ -79,6 +82,7 @@ public class Robot extends SampleRobot {
     private PowerDistributionPanel power;
     private QuadratureEncoder rightEnc;
     private QuadratureEncoder leftEnc;
+    private CameraServer camera;
     
     // AUTONOMOUS STATES
     public static final int START = 0;
@@ -92,12 +96,13 @@ public class Robot extends SampleRobot {
 	
 	// CLAW HEIGHTS
 	private static final int BOTTOM = 0;
-	private static final int ABOVE_TOTE = 10;
+	private static final int ABOVE_TOTE = 11;
 	private static final int TOTE_DRIVE = 6;
-	private static final int SECOND_TOTE = 16;
-	private static final int GRAB_BIN = 12;
-	private static final int BIN_DRIVE = 18;
-	private static final int BIN_TOTE = 29;
+	private static final int SECOND_TOTE = 22;
+	private static final int ABOVE_BIN = 25;
+	private static final int GRAB_BIN = 17;
+	private static final int BIN_DRIVE = 26;
+	private static final int BIN_TOTE = 36;
 	
 	// USERCONTROL STATES
 	private static final int RESET = 0;
@@ -106,17 +111,22 @@ public class Robot extends SampleRobot {
 	private static final int TOTE_GRABBED = 3;
 	private static final int READY_FOR_NEXT = 4;
 	private static final int READY_FOR_BIN = 5;
+	private static final int GRABBING_BIN = 10;
 	private static final int BIN_GRABBED = 6;
 	private static final int READY_FOR_BIN_TOTE = 7;
 	private static final int MANUAL = 8;
 	private static final int COMPLETE_MANUAL = 9;
+	private static final int E_STOP_STATE = 11;
 	
 
     public void robotInit() {
-    	drive = new DriveSystem(4, 5, 3.0);
+    	drive = new DriveSystem(RIGHT_ENC_A, RIGHT_ENC_B, DRIVE_ENC_CPR);
     	drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
         drive.setSafety(false);
         
+        camera = CameraServer.getInstance();
+        camera.setQuality(50);
+        camera.startAutomaticCapture("cam0");
         
         power = new PowerDistributionPanel();
         
@@ -127,10 +137,10 @@ public class Robot extends SampleRobot {
         */
         drive.setInvertedQuad();
         
-        rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, RIGHT_ENC_I, true, DRIVE_ENC_CPR);
-        rightEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE * DRIVE_GEAR_RATIO);
-        leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, LEFT_ENC_I, DRIVE_ENC_CPR);
-        leftEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE * DRIVE_GEAR_RATIO);
+        //rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, true, 4, DRIVE_ENC_CPR);
+        //rightEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); // * DRIVE_GEAR_RATIO);
+        leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, 4, DRIVE_ENC_CPR);
+        leftEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); //* DRIVE_GEAR_RATIO);
         
         
     	if (rightLift != null)
@@ -171,7 +181,7 @@ public class Robot extends SampleRobot {
     {
     	leftLift.free();
         leftLift = new CANJaguar(LEFT_LIFT_PORT);
-        leftLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1000, 0.002, 1000);
+        leftLift.setPositionMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR, 1500, 0.002, 1000);
     	//leftLift.setPercentMode();
         leftLift.configForwardLimit(LIFT_HEIGHT_LIMIT/LIFT_DISTANCE_PER_REV);
         leftLift.configLimitMode(CANJaguar.LimitMode.SoftPositionLimits);
@@ -182,6 +192,8 @@ public class Robot extends SampleRobot {
 	/*
 	
 	// JOY WANTS THESE TO BE INSTANCE VARIABLES???
+	// YES SHE DOES
+	
 	private int state = 0;
 	private int resetCount = 0;
 	private long currTime = 0L;
@@ -190,6 +202,7 @@ public class Robot extends SampleRobot {
 	public void autonomous() {
 		
 		while(isAutonomous() && isEnabled()) {
+    		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
 			//imageProcessing();
 			currTime = System.currentTimeMillis();
 			joytonomousStates(currTime); 
@@ -309,32 +322,33 @@ public class Robot extends SampleRobot {
     	boolean canPressToggle = true;
     	boolean isIncrement = true;
     	boolean calibrated = true;
-    	boolean slaveLeft = true;
+    	boolean slaveRight = true;
+    	boolean driveOnly = false;
     	int state = 0;
     	int saveState = 0;
     	
     	
-    	final boolean TESTING_DRIVE = true;
     	
-    	rightEnc.reset();
+    	//rightEnc.reset();
     	leftEnc.reset();
     	
-    	//drive.forward(10.0);
     	
         while (isOperatorControl() && isEnabled()) {
-        	if (TESTING_DRIVE) {
-        		slaveLeft = false;
-        		state = 25;
+        	if (driveOnly) {
+        		slaveRight = false;
+        		//state = 25;
         	}
         	
-        	doArcadeDrive();
-            //drive.arcadeDrive(joyDrive.getY()*joyDrive.getZ(), joyDrive.getX());
-            dash.putNumber("Right Drive: ", rightEnc.getDistance());
+        	
+        	this.doArcadeDrive();
+        	//dash.putNumber("RIGHT DRIVE RAW", rightEnc.getRaw());
+        	dash.putNumber("LEFT DRIVE RAW", leftEnc.getRaw());
+            //dash.putNumber("Right Drive: ", rightEnc.getDistance());
             dash.putNumber("Left Drive : ", leftEnc.getDistance());
             
             dash.putData("PDP: ", power);
 
-        	if (slaveLeft)
+        	if (slaveRight && state != RESET)
         		doSlave();
         	
         	
@@ -353,12 +367,18 @@ public class Robot extends SampleRobot {
             switch(state)
             {
             case RESET :
-        		slaveLeft = false;
-        		dash.putString("Status: ", "Calibrating...");
+        		slaveRight = false;
+        		dash.putString("UP Button (6): ", "Calibrating...");
+        		dash.putString("DOWN Button (7): ", "Calibrating...");
+        		dash.putString("TOTE Button (5): ", "Calibrating...");
+        		dash.putString("BIN Button (4): ", "Calibrating...");
             	if (calibratedLift())
             	{
-                	slaveLeft = true;
-            		dash.putString("Status: ", "in RESET");
+                	slaveRight = true;
+            		dash.putString("UP Button (6): ", "DNE");
+            		dash.putString("DOWN Button (7): ", "DNE");
+            		dash.putString("TOTE Button (5): ", "Gets ready to pick up TOTE");
+            		dash.putString("BIN Button (4): ", "Gets ready to pick up BIN");
             		if (joyPayload.getRawButton(TOTE_BUTTON))
             			state = READY_FOR_TOTE;
             		if (joyPayload.getRawButton(BIN_BUTTON))
@@ -366,35 +386,56 @@ public class Robot extends SampleRobot {
             	}
             	break;
             case READY_FOR_TOTE :
-            	dash.putString("Status: ", "in READY_FOR_TOTE");
+        		dash.putString("UP Button (6): ", "Move hooks to over TOTE to pick it up");
+        		dash.putString("DOWN Button (7): ", "DNE");
+        		dash.putString("TOTE Button (5): ", "DNE");
+        		dash.putString("BIN Button (4): ", "Gets ready to pick up BIN");
             	setLift(ABOVE_TOTE);
-            	if (joyPayload.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - ABOVE_TOTE) < LIFT_BUFFER))// && leftLift.getPosition() == ABOVE_TOTE)
+            	if (joyPayload.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - ABOVE_TOTE) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - ABOVE_TOTE) < LIFT_BUFFER))
             		state = GRABBING_TOTE;
             	if (joyPayload.getRawButton(BIN_BUTTON))
         			state = READY_FOR_BIN;
             	break;
             case READY_FOR_BIN :
-            	dash.putString("Status: ", "in READY_FOR_BIN");
-            	setLift(GRAB_BIN);
-            	if (joyPayload.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - GRAB_BIN) < LIFT_BUFFER))// && //leftLift.getPosition() == GRAB_BIN)
-            		state = BIN_GRABBED;
+        		dash.putString("UP Button (6): ", "Picks up BIN to drive");
+        		dash.putString("DOWN Button (7): ", "DNE");
+        		dash.putString("TOTE Button (5): ", "Gets ready to pick up TOTE");
+        		dash.putString("BIN Button (4): ", "DNE");
+            	setLift(ABOVE_BIN);
+            	if (joyPayload.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - ABOVE_BIN) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - ABOVE_BIN) < LIFT_BUFFER ))
+            		state = GRABBING_BIN;
             	if (joyPayload.getRawButton(TOTE_BUTTON))
         			state = READY_FOR_TOTE;
             	break;
             case GRABBING_TOTE :
-            	dash.putString("Status: ", "in GRABBING_TOTE");
+        		dash.putString("UP Button (6): ", "Picks up TOTE to drive");
+        		dash.putString("DOWN Button (7): ", "DNE");
+        		dash.putString("TOTE Button (5): ", "Goes back to getting ready to pick up TOTE");
+        		dash.putString("BIN Button (4): ", "Gets ready to pick up BIN");
             	setLift(BOTTOM);
-            	if (joyPayload.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BOTTOM) < LIFT_BUFFER))// && leftLift.getPosition() == BOTTOM)
+            	if (joyPayload.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BOTTOM) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - BOTTOM) < LIFT_BUFFER))
             		state = TOTE_GRABBED;
             	if (joyPayload.getRawButton(BIN_BUTTON))
         			state = READY_FOR_BIN;
             	if (joyPayload.getRawButton(TOTE_BUTTON))
         			state = READY_FOR_TOTE;
             	break;
+            case GRABBING_BIN :
+            	setLift(GRAB_BIN);
+            	if (joyPayload.getRawButton(LIFT_UP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - GRAB_BIN) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - GRAB_BIN) < LIFT_BUFFER ))
+            		state = BIN_GRABBED;
+            	if (joyPayload.getRawButton(BIN_BUTTON))
+        			state = READY_FOR_BIN;
+            	if (joyPayload.getRawButton(TOTE_BUTTON))
+        			state = READY_FOR_TOTE;
+            	break;
             case TOTE_GRABBED :
-            	dash.putString("Status: ", "in TOTE_GRABBED");
+        		dash.putString("UP Button (6): ", "Gets ready to pick up another TOTE");
+        		dash.putString("DOWN Button (7): ", "Puts TOTE down");
+        		dash.putString("TOTE Button (5): ", "DNE");
+        		dash.putString("BIN Button (4): ", "DNE");
             	setLift(TOTE_DRIVE);
-            	if (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - TOTE_DRIVE) < LIFT_BUFFER)// && leftLift.getPosition() == TOTE_DRIVE)
+            	if ((Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - TOTE_DRIVE) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - TOTE_DRIVE) < LIFT_BUFFER))
             	{
             		if (joyPayload.getRawButton(LIFT_UP))
             			state = READY_FOR_NEXT;
@@ -403,20 +444,26 @@ public class Robot extends SampleRobot {
             	}
             	break;
             case BIN_GRABBED :
-            	dash.putString("Status: ", "in BIN_GRABBED");
+        		dash.putString("UP Button (6): ", "Gets ready to pick up a TOTE under the BIN");
+        		dash.putString("DOWN Button (7): ", "Puts BIN down");
+        		dash.putString("TOTE Button (5): ", "Gets ready to pick up a TOTE under the BIN");
+        		dash.putString("BIN Button (4): ", "DNE");
             	setLift(BIN_DRIVE);
-            	if (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_DRIVE) < LIFT_BUFFER)// && leftLift.getPosition() == BIN_DRIVE)
+            	if ((Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_DRIVE) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_DRIVE) < LIFT_BUFFER ))
             	{
             		if ((joyPayload.getRawButton(LIFT_UP) || joyPayload.getRawButton(TOTE_BUTTON)))
             			state = READY_FOR_BIN_TOTE;
             		else if (joyPayload.getRawButton(LIFT_DOWN))
-            			state = READY_FOR_BIN;
+            			state = GRABBING_BIN;
             	}
             	break;
             case READY_FOR_NEXT :
-            	dash.putString("Status: ", "in READY_FOR_NEXT");
+        		dash.putString("UP Button (6): ", "Puts hooks under TOTE to grab another TOTE");
+        		dash.putString("DOWN Button (7): ", "Goes back to TOTE driving position");
+        		dash.putString("TOTE Button (5): ", "DNE");
+        		dash.putString("BIN Button (4): ", "DNE");
             	setLift(SECOND_TOTE);
-            	if(Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - SECOND_TOTE) < LIFT_BUFFER)// && leftLift.getPosition() == SECOND_TOTE)
+            	if ((Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - SECOND_TOTE) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - SECOND_TOTE) < LIFT_BUFFER ))
             	{
             		if (joyPayload.getRawButton(LIFT_UP))
             			state = GRABBING_TOTE;
@@ -425,9 +472,12 @@ public class Robot extends SampleRobot {
             	}
             	break;
             case READY_FOR_BIN_TOTE :
-            	dash.putString("Status: ", "in READY_FOR_BIN_TOTE");
+        		dash.putString("UP Button (6): ", "Puts hooks under TOTE to pick up TOTE and BIN");
+        		dash.putString("DOWN Button (7): ", "Puts BIN back into driving position");
+        		dash.putString("TOTE Button (5): ", "DNE");
+        		dash.putString("BIN Button (4): ", "DNE");
             	setLift(BIN_TOTE);
-            	if(Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER)// && leftLift.getPosition() == BIN_TOTE)
+            	if ((Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER))
             	{
             		if (joyPayload.getRawButton(LIFT_UP))
             			state = GRABBING_TOTE;
@@ -437,20 +487,29 @@ public class Robot extends SampleRobot {
             	if (joyPayload.getRawButton(LIFT_UP))
             		break;
             case MANUAL :
-            	dash.putString("Status: ", "EMANUEL");
-            	state = saveState;
+        		dash.putString("UP Button (6): ", "Moves hooks up by a small increment");
+        		dash.putString("DOWN Button (7): ", "Moves hooks down by a small increment");
+        		dash.putString("TOTE Button (5): ", "EMANUEL");
+        		dash.putString("BIN Button (4): ", "EMANUEL");
+        		dash.putString("EXIT MANUAL Button (9): ", "Exits the EMANUAL mode");
             	if (joyPayload.getRawButton(EXIT_MAN_BUTTON))
+            		state = saveState;
+            	if (joyPayload.getRawButton(LIFT_UP))
             		setLift(Math.abs(rightLift.get() * LIFT_DISTANCE_PER_REV) + LIFT_GRAD_DISTANCE);
             	else if (joyPayload.getRawButton(LIFT_DOWN))
             		setLift(Math.abs(rightLift.get() * LIFT_DISTANCE_PER_REV) - LIFT_GRAD_DISTANCE);
         		break;
             case COMPLETE_MANUAL :
-            	dash.putString("Status: ", "COMPLETELY_EMANUEL");
-        		rightLift.set(-joyPayload.getY()*joyPayload.getZ());
-        		leftLift.set(-joyPayload.getY()*joyPayload.getZ());
+        		dash.putString("UP Button (6): ", "COMPLETELY EMANUEL; move using JOYSTICK");
+        		dash.putString("DOWN Button (7): ", "COMPLETELY EMANUEL; move using JOYSTICK");
+        		dash.putString("TOTE Button (5): ", "COMPLETELY EMANUEL; move using JOYSTICK");
+        		dash.putString("BIN Button (4): ", "COMPLETELY EMANUEL; move using JOYSTICK");
+        		dash.putString("EXIT MANUAL Button (9): ", "Exits the COMPLETELY EMANUEL mode");
+        		rightLift.set(-joyPayload.getY());
+        		leftLift.set(-joyPayload.getY());
         		
         		if (joyPayload.getRawButton(EXIT_MAN_BUTTON)){
-        			slaveLeft = true;
+        			slaveRight = true;
         			state = saveState;
         			rightLift.free();
         			leftLift.free();
@@ -460,8 +519,13 @@ public class Robot extends SampleRobot {
             		initLeftLift();
             	}
         		break;
-            case 25 :
-            	dash.putString("Status: ", "Lift disabled");
+        		
+            case E_STOP_STATE :
+        		dash.putString("UP Button (6): ", "Robot lift disabled");
+        		dash.putString("DOWN Button (7): ", "Robot lift disabled");
+        		dash.putString("TOTE Button (5): ", "Robot lift disabled");
+        		dash.putString("BIN Button (4): ", "Robot lift disabled");
+        		dash.putString("EXIT MANUAL Button (9): ", "Robot lift disabled");
             	break;
             }
             
@@ -479,13 +543,19 @@ public class Robot extends SampleRobot {
         	{
         		saveState = state;
             	disableLift();
-            	slaveLeft = false;
+            	slaveRight = false;
             	rightLift.setPercentMode();
             	leftLift.setPercentMode();
         		rightLift.enableControl();
         		leftLift.enableControl();
         		state = COMPLETE_MANUAL;
         		
+        	}
+        	
+        	if (joyDrive.getRawButton(EMERGENCY_STOP) || joyPayload.getRawButton(EMERGENCY_STOP))
+        	{
+        		driveOnly = true;
+        		state = E_STOP_STATE;
         	}
         	
         	
@@ -534,13 +604,13 @@ public class Robot extends SampleRobot {
     }
 
     private void setLift(double setPoint){
-    	rightLift.set(setPoint / LIFT_DISTANCE_PER_REV); 
-    	//leftLift.set(setPoint / DISTANCE_PER_REV); // left is reflected
+    	leftLift.set(setPoint / LIFT_DISTANCE_PER_REV); 
+    	//leftLift.set(setPoint / LIFT_DISTANCE_PER_REV); // left is reflected
     }
     
     private void doSlave()
     {
-    	leftLift.set(rightLift.getPosition()-(LIFT_BUFFER/LIFT_DISTANCE_PER_REV));
+    	rightLift.set(leftLift.getPosition() - (RIGHT_LIFT_COMP/LIFT_DISTANCE_PER_REV));
     }
     
     private boolean calibratedLift()
@@ -551,7 +621,7 @@ public class Robot extends SampleRobot {
     	{
     		rightLift.setPercentMode();
     		rightLift.enableControl();
-    		rightLift.set(-1);
+    		rightLift.set(-0.75);
     	}
     	else
     	{
@@ -565,7 +635,7 @@ public class Robot extends SampleRobot {
     	{
     		leftLift.setPercentMode();
     		leftLift.enableControl();
-    		leftLift.set(-1);
+    		leftLift.set(-0.75);
     	}
     	else
     	{
