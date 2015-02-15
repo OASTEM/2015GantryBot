@@ -10,12 +10,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * @author bnguyen654
  */
 
-/**
+
 public class Pulley{
     private static Pulley instance;
     
     private CANJaguar right, left;
-    boolean rRefl, lRefl;
+    private final byte SYNC_GROUP = 0x0008;
     
     private int codesPerRev = 497,
     		distPerRev = 0; //to be checked
@@ -43,13 +43,13 @@ public class Pulley{
     public void init(CANJaguar r, CANJaguar l, double p, double i, double d){
         right = r;
         right.setPositionMode(CANJaguar.kQuadEncoder, codesPerRev, p, i, d);
-        //right.configSoftPositionLimits(FORWARD_LIMIT, REVERSE_LIMIT);
-        //not sure
+        right.configSoftPositionLimits(FORWARD_LIMIT, REVERSE_LIMIT);
+        right.enableControl();
         
         left = l;
         left.setPositionMode(CANJaguar.kQuadEncoder, codesPerRev, p, i, d);
-        //left.configSoftPositionLimits(FORWARD_LIMIT, REVERSE_LIMIT);
-        //wat do
+        left.configSoftPositionLimits(FORWARD_LIMIT, REVERSE_LIMIT);
+        left.enableControl();
     }
     
     public void configEnc(int cpr, int dpr){
@@ -58,17 +58,18 @@ public class Pulley{
     }
     
     public void up(double dist){
-    	left.set(left.getPosition() +
-    			((lRefl ? -1 : 1) * i2r(dist)));
-    	right.set(right.getPosition() + 
-    			((rRefl ? -1 : 1) * i2r(dist)));
+    	right.set(right.getPosition() + i2r(dist),SYNC_GROUP);
+    	left.set(right.getPosition() + i2r(dist),SYNC_GROUP);
+    	CANJaguar.updateSyncGroup(SYNC_GROUP);
     }
     public void down(double dist){
-    	left.set(left.getPosition() -
-    			((lRefl ? -1 : 1) * i2r(dist)));
-    	right.set(right.getPosition() - 
-    			((rRefl ? -1 : 1) * i2r(dist)));
+    	right.set(right.getPosition() - i2r(dist),SYNC_GROUP);
+    	left.set(right.getPosition() - i2r(dist),SYNC_GROUP);
+    	CANJaguar.updateSyncGroup(SYNC_GROUP);
     }
+   /** public void doSlave(){
+    	left.set(right.getPosition() + i2r(0.5));
+    }*/
     
     public void up(){
     	up(AUTO_MOVE_DIST);
@@ -79,24 +80,28 @@ public class Pulley{
     }
     
     public void goToPos(double pos){
-        right.set(i2r(pos));
-        left.set(i2r(pos));
+        right.set(i2r(pos),SYNC_GROUP);
+        left.set(i2r(pos),SYNC_GROUP);
+        CANJaguar.updateSyncGroup(SYNC_GROUP);
     }
     
     public void debug(SmartDashboard dash){
-    	
+    	dash.putNumber("Left Enc", left.getPosition());
+    	dash.putNumber("Right Enc", right.getPosition());
+    	dash.putNumber("Left Setpoint", left.get());
+    	dash.putNumber("Left Setpoint", left.get());
     }
 
 	public boolean upToHook() {
-		
+		return false;
 	}
 	
 	public boolean downToUnhook() {
-		
+		return false;
 	}
 	
 	public boolean checkHooked() {
-		
+		return false;
 	}
 	private double r2i(double rev){ //rev to in
 		return rev * distPerRev;
@@ -104,5 +109,4 @@ public class Pulley{
 	private double i2r(double in){ //in to rev
 		return in/distPerRev;
 	}
-    
-}*/
+}
