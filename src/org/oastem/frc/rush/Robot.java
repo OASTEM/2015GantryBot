@@ -97,7 +97,7 @@ public class Robot extends SampleRobot {
 	// CLAW HEIGHTS
 	private static final int BOTTOM = 0;
 	private static final int ABOVE_TOTE = 11;
-	private static final int TOTE_DRIVE = 6;
+	private static final int TOTE_DRIVE = 8;
 	private static final int SECOND_TOTE = 22;
 	private static final int ABOVE_BIN = 25;
 	private static final int GRAB_BIN = 17;
@@ -129,6 +129,7 @@ public class Robot extends SampleRobot {
 		camera.startAutomaticCapture("cam0");
 
 		power = new PowerDistributionPanel();
+		power.clearStickyFaults();
 
 		/*rightDriveFront = new Victor(DRIVE_RIGHT_FRONT_PORT);
         //rightDriveBack = new Victor(DRIVE_RIGHT_BACK_PORT);
@@ -376,6 +377,7 @@ public class Robot extends SampleRobot {
 					if (joyPayload.getRawButton(BIN_BUTTON))
 						state = READY_FOR_BIN;
 				}
+				
 				else
 				{	
 					dash.putString("UP Button (6): ", "Calibrating...");
@@ -476,7 +478,8 @@ public class Robot extends SampleRobot {
 				dash.putString("TOTE Button (5): ", "DNE");
 				dash.putString("BIN Button (4): ", "DNE");
 				setLift(BIN_TOTE);
-				if ((Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER))
+				dash.putString("WHy", "isthisnotworking");
+				if ((Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - BIN_TOTE) < LIFT_BUFFER))
 				{
 					if (joyPayload.getRawButton(LIFT_UP))
 						state = GRABBING_TOTE;
@@ -504,7 +507,7 @@ public class Robot extends SampleRobot {
 				dash.putString("BIN Button (4): ", "COMPLETELY EMANUEL; move using JOYSTICK");
 				dash.putString("EXIT MANUAL Button (9): ", "Exits the COMPLETELY EMANUEL mode");
 				rightLift.set(-joyPayload.getY());
-				leftLift.set(-joyPayload.getY());
+				leftLift.set(-joyPayload.getY()*1.15);
 
 				if (joyPayload.getRawButton(EXIT_MAN_BUTTON) || joyPayload.getRawButton(RESET_BUTTON)){
 					state = RESET;
@@ -578,7 +581,7 @@ public class Robot extends SampleRobot {
 	}
 
 	private double scaleZ(double rawZ) {
-		return Math.min(1.0, 0.5 - 0.5 * rawZ);
+		return Math.min(1.0, 0.5 - 0.3 * rawZ);
 	}
 
 	private double correct(double val) {
