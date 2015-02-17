@@ -9,7 +9,8 @@ import org.oastem.frc.sensor.*;
  * @author joyhsu0504
  */
 
-public class DriveSystemAccel extends DriveSystem{
+public class DriveSystemAccel extends DriveSystem {
+	private static DriveSystemAccel instance;
 	
 	private long currTime;
 	private long thisTime;
@@ -17,23 +18,28 @@ public class DriveSystemAccel extends DriveSystem{
 	private int[] locs;
 	private Accelerator[] acceleration;
 	private int locCount = 4;
-	private QuadratureEncoder enc;
 	
-	private DriveSystemAccel(int channelA, int channelB, double pulses){
+	protected DriveSystemAccel(){
 		super();
 		currTime = System.currentTimeMillis();
 		thisTime = currTime;
-		acceleration = new Accelerator[12];
-		enc = new QuadratureEncoder(channelA, channelB, pulses);
-		speed = new double[12];
-		locs = new int[12];
-		
+		acceleration = new Accelerator[NUM_ITEMS];
+		speed = new double[NUM_ITEMS];
+		locs = new int[NUM_ITEMS];
 	}
-	/*
-	public DriveSystem getInstance() {
-        return super.getInstance();
-    }
-    */
+	
+	public static DriveSystemAccel getInstance() {
+		if (instance == null) {
+			instance = new DriveSystemAccel();
+		}
+		
+		return instance;
+	}
+	
+	public void initializeEncoders(int channelA, int channelB, double pulses) {
+		super.initializeEncoders(channelA, channelB, pulses);
+	}
+	
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
 		locs[0] = leftFront;
 		//locs[1] = leftRear;

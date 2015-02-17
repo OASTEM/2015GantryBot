@@ -18,8 +18,8 @@ import java.util.Hashtable;
  */
 public class DriveSystem {
     // Constants.
-    private static final int NUM_ITEMS = 12;
-    private static final double DISTANCE_PER_PULSE = 6 * Math.PI;
+    protected static final int NUM_ITEMS = 12;
+    protected static final double DISTANCE_PER_PULSE = 6 * Math.PI;
     
     // Singleton design pattern: instance of this class.
     // Only one drive system is allowed per robot - 
@@ -29,18 +29,10 @@ public class DriveSystem {
     
     private RobotDrive drive;
     private Victor[] raw;
-    private double[] speed;
     private boolean hasSecondary = false;
     private RobotDrive drive2;
     
-    // Unused variables?
-    private long currTime;
-    private long thisTime;
-    //private double[] speed;
-    //private int[] locs;
-    //private Accelerator[] acceleration;
-    //private int locCount = 4;
-    private QuadratureEncoder enc;
+    protected QuadratureEncoder enc;
     
     protected DriveSystem() {
         raw = new Victor[NUM_ITEMS];
@@ -55,14 +47,9 @@ public class DriveSystem {
     }
     
     public void initializeEncoders(int channelA, int channelB, double pulses) {
-        currTime = System.currentTimeMillis();
-        thisTime = currTime;
-        //acceleration = new Accelerator[12];
         enc = new QuadratureEncoder(channelA, channelB, pulses);
         enc.setDistancePerPulse(DISTANCE_PER_PULSE);
         enc.reset();
-        speed = new double[NUM_ITEMS];
-        //locs = new int[12];
     }
     
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
@@ -101,8 +88,7 @@ public class DriveSystem {
         if (hasSecondary) drive2.tankDrive(x, y);
     }
     
-    public void mecanumDrive(double x, double y, double turn, double gyro)
-    {
+    public void mecanumDrive(double x, double y, double turn, double gyro) {
         drive.mecanumDrive_Cartesian(x, y, turn, gyro);
         if (hasSecondary) drive2.mecanumDrive_Cartesian(x, y, turn, gyro);
     }
@@ -123,7 +109,7 @@ public class DriveSystem {
         return raw[vic];
     }
     
-    public void setSafety(boolean b){
+    public void setSafety(boolean b) {
         drive.setSafetyEnabled(false);
         if (hasSecondary) drive2.setSafetyEnabled(false);
     }
@@ -150,14 +136,12 @@ public class DriveSystem {
         }
     }
     
-    public void setInvertedDouble()
-    {
+    public void setInvertedDouble() {
         drive.setInvertedMotor(MotorType.kRearLeft, true);
         drive.setInvertedMotor(MotorType.kRearRight, true);
     }
     
-    public void setInvertedQuad()
-    {
+    public void setInvertedQuad() {
         drive.setInvertedMotor(MotorType.kFrontLeft, true);
         drive.setInvertedMotor(MotorType.kFrontRight, true);
         drive.setInvertedMotor(MotorType.kRearLeft, true);
