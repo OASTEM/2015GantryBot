@@ -17,14 +17,14 @@ import java.util.Hashtable;
  * @author KTOmega
  */
 public class DriveSystem {
-	// Constants.
-	private static final int NUM_ITEMS = 12;
-	private static final double DISTANCE_PER_PULSE = 6 * Math.PI;
-	
-	// Singleton design pattern: instance of this class.
-	// Only one drive system is allowed per robot - 
-	// if any class needs it, it can call the getInstance()
-	// method to use it.
+    // Constants.
+    private static final int NUM_ITEMS = 12;
+    private static final double DISTANCE_PER_PULSE = 6 * Math.PI;
+    
+    // Singleton design pattern: instance of this class.
+    // Only one drive system is allowed per robot - 
+    // if any class needs it, it can call the getInstance()
+    // method to use it.
     private static DriveSystem instance;
     
     private RobotDrive drive;
@@ -34,18 +34,18 @@ public class DriveSystem {
     private RobotDrive drive2;
     
     // Unused variables?
-	private long currTime;
-	private long thisTime;
-	//private double[] speed;
-	//private int[] locs;
-	//private Accelerator[] acceleration;
-	//private int locCount = 4;
-	private QuadratureEncoder enc;
-	
+    private long currTime;
+    private long thisTime;
+    //private double[] speed;
+    //private int[] locs;
+    //private Accelerator[] acceleration;
+    //private int locCount = 4;
+    private QuadratureEncoder enc;
+    
     protected DriveSystem() {
         raw = new Victor[NUM_ITEMS];
     }
-	
+    
     public static DriveSystem getInstance() {
         if (instance == null) {
             instance = new DriveSystem();
@@ -55,15 +55,15 @@ public class DriveSystem {
     }
     
     public void initializeEncoders(int channelA, int channelB, double pulses) {
-		currTime = System.currentTimeMillis();
-		thisTime = currTime;
-		//acceleration = new Accelerator[12];
-		enc = new QuadratureEncoder(channelA, channelB, pulses);
-		enc.setDistancePerPulse(DISTANCE_PER_PULSE);
-		enc.reset();
-		speed = new double[NUM_ITEMS];
-		//locs = new int[12];
-	}
+        currTime = System.currentTimeMillis();
+        thisTime = currTime;
+        //acceleration = new Accelerator[12];
+        enc = new QuadratureEncoder(channelA, channelB, pulses);
+        enc.setDistancePerPulse(DISTANCE_PER_PULSE);
+        enc.reset();
+        speed = new double[NUM_ITEMS];
+        //locs = new int[12];
+    }
     
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
         drive = new RobotDrive(leftFront, leftRear, rightFront, rightRear);
@@ -128,39 +128,39 @@ public class DriveSystem {
         if (hasSecondary) drive2.setSafetyEnabled(false);
     }
 
-	public boolean reverse(double distance) {
-		if (enc.getDistance() < distance) {
-			drive.arcadeDrive(0.5, 0.5);
-			if (hasSecondary) drive2.arcadeDrive(0.5, 0.5);
-			return false;
-		} else {
-			drive.arcadeDrive(0, 0);
-			return true;
-		}
-	}
+    public boolean reverse(double distance) {
+        if (enc.getDistance() < distance) {
+            drive.arcadeDrive(0.5, 0.5);
+            if (hasSecondary) drive2.arcadeDrive(0.5, 0.5);
+            return false;
+        } else {
+            drive.arcadeDrive(0, 0);
+            return true;
+        }
+    }
 
-	public boolean forward(double distance) {
-		if (Math.abs(enc.getDistance()) < distance) {
-			drive.arcadeDrive(-0.35, -0.35);
-			if (hasSecondary) drive2.arcadeDrive(-0.5, -0.5);
-			return false;
-		} else {
-			drive.arcadeDrive(0, 0);
-			return true;
-		}
-	}
+    public boolean forward(double distance) {
+        if (Math.abs(enc.getDistance()) < distance) {
+            drive.arcadeDrive(-0.35, -0.35);
+            if (hasSecondary) drive2.arcadeDrive(-0.5, -0.5);
+            return false;
+        } else {
+            drive.arcadeDrive(0, 0);
+            return true;
+        }
+    }
     
     public void setInvertedDouble()
     {
-    	drive.setInvertedMotor(MotorType.kRearLeft, true);
-    	drive.setInvertedMotor(MotorType.kRearRight, true);
+        drive.setInvertedMotor(MotorType.kRearLeft, true);
+        drive.setInvertedMotor(MotorType.kRearRight, true);
     }
     
     public void setInvertedQuad()
     {
-    	drive.setInvertedMotor(MotorType.kFrontLeft, true);
-    	drive.setInvertedMotor(MotorType.kFrontRight, true);
-    	drive.setInvertedMotor(MotorType.kRearLeft, true);
-    	drive.setInvertedMotor(MotorType.kRearRight, true);
+        drive.setInvertedMotor(MotorType.kFrontLeft, true);
+        drive.setInvertedMotor(MotorType.kFrontRight, true);
+        drive.setInvertedMotor(MotorType.kRearLeft, true);
+        drive.setInvertedMotor(MotorType.kRearRight, true);
     }
 }
