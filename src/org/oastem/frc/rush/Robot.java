@@ -58,6 +58,7 @@ public class Robot extends SampleRobot {
 	private static final int MAN_BUTTON = 8;
 	private static final int EXIT_MAN_BUTTON = 9;
 	private static final int EMERGENCY_STOP = 11;
+	private static final int EXIT_E_STOP = 6;
 
 	// CONSTANTS
 	private static final int PLAN_ENC_CPR = 497;
@@ -552,6 +553,14 @@ public class Robot extends SampleRobot {
 				slaveRight = false;
 				state = E_STOP_STATE;
 			}
+			
+			if (joyDrive.getRawButton(EXIT_E_STOP) && state == E_STOP_STATE)
+			{
+				driveOnly = false;
+				slaveRight = true;
+				state = RESET;
+			}
+				
 		}
 	}
 
