@@ -18,7 +18,16 @@ import java.util.Hashtable;
  * @author KTOmega
  */
 public class DriveSystem {
+	// Constants.
+	private static final int NUM_ITEMS = 12;
+	private static final double DISTANCE_PER_PULSE = 6 * Math.PI;
+	
+	// Singleton design pattern: instance of this class.
+	// Only one drive system is allowed per robot - 
+	// if any class needs it, it can call the getInstance()
+	// method to use it.
     private static DriveSystem instance;
+    
     private RobotDrive drive;
     private Victor[] raw;
     private double[] speed;
@@ -34,7 +43,7 @@ public class DriveSystem {
 	private QuadratureEncoder enc;
 	
     protected DriveSystem() {
-        raw = new Victor[12];
+        raw = new Victor[NUM_ITEMS];
     }
 	
     public static DriveSystem getInstance() {
@@ -50,9 +59,9 @@ public class DriveSystem {
 		thisTime = currTime;
 		//acceleration = new Accelerator[12];
 		enc = new QuadratureEncoder(channelA, channelB, pulses);
-		enc.setDistancePerPulse(6 * Math.PI);
+		enc.setDistancePerPulse(DISTANCE_PER_PULSE);
 		enc.reset();
-		speed = new double[12];
+		speed = new double[NUM_ITEMS];
 		//locs = new int[12];
 	}
     
