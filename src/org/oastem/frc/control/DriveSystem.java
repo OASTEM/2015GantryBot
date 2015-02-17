@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.oastem.frc.control;
 
 import edu.wpi.first.wpilibj.Joystick;
@@ -14,7 +10,10 @@ import org.oastem.frc.sensor.*;
 import java.util.Hashtable;
 
 /**
- *
+ * Class to control the entirety of the drive train of an FRC robot.
+ * Originally designed by Kevin Tran for FRC 4079 in 2013: Ultimate Ascent.
+ * Modified by future years of FRC 4079.
+ * 
  * @author KTOmega
  */
 public class DriveSystem {
@@ -34,6 +33,7 @@ public class DriveSystem {
     private boolean hasSecondary = false;
     private RobotDrive drive2;
     
+    // Unused variables?
 	private long currTime;
 	private long thisTime;
 	//private double[] speed;
