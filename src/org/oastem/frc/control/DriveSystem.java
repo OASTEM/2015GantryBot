@@ -36,8 +36,16 @@ public class DriveSystem {
     protected DriveSystem() {
         raw = new Victor[12];
     }
+	
+    public static DriveSystem getInstance() {
+        if (instance == null) {
+            instance = new DriveSystem();
+        }
+        
+        return instance;
+    }
     
-	public DriveSystem(int channelA, int channelB, double pulses){
+    public void initializeEncoders(int channelA, int channelB, double pulses) {
 		currTime = System.currentTimeMillis();
 		thisTime = currTime;
 		//acceleration = new Accelerator[12];
@@ -46,18 +54,7 @@ public class DriveSystem {
 		enc.reset();
 		speed = new double[12];
 		//locs = new int[12];
-		raw = new Victor[12];
-		getInstance();
 	}
-	
-    
-    public DriveSystem getInstance() {
-        if (instance == null) {
-            instance = new DriveSystem();
-        }
-        
-        return instance;
-    }
     
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
         drive = new RobotDrive(leftFront, leftRear, rightFront, rightRear);

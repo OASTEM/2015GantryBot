@@ -120,7 +120,8 @@ public class Robot extends SampleRobot {
 
 
 	public void robotInit() {
-		drive = new DriveSystem(RIGHT_ENC_A, RIGHT_ENC_B, DRIVE_ENC_CPR);
+		drive = DriveSystem.getInstance();
+		drive.initializeEncoders(RIGHT_ENC_A, RIGHT_ENC_B, DRIVE_ENC_CPR);
 		drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
 		drive.setSafety(false);
 
