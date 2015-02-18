@@ -591,7 +591,7 @@ public class Robot extends SampleRobot {
 	}
 
 	private double scaleZ(double rawZ) {
-		return Math.min(1.0, 0.5 - 0.3 * rawZ);
+		return Math.min(1.0, 0.5 - 0.2 * rawZ);
 	}
 
 	private double correct(double val) {
