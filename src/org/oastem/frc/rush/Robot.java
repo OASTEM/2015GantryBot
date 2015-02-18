@@ -507,7 +507,10 @@ public class Robot extends SampleRobot {
 				dash.putString("BIN Button (4): ", "COMPLETELY EMANUEL; move using JOYSTICK");
 				dash.putString("EXIT MANUAL Button (9): ", "Exits the COMPLETELY EMANUEL mode");
 				rightLift.set(-joyPayload.getY());
-				leftLift.set(-joyPayload.getY()*1.15);
+				if (-joyPayload.getY() < 0)
+				leftLift.set(-joyPayload.getY()*1);
+				else
+				leftLift.set(-joyPayload.getY()*1.07);
 
 				if (joyPayload.getRawButton(EXIT_MAN_BUTTON) || joyPayload.getRawButton(RESET_BUTTON)){
 					state = RESET;
