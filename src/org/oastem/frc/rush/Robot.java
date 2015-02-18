@@ -566,6 +566,7 @@ public class Robot extends SampleRobot {
 			//COOPERATITION BACK UP
 			if (joyDrive.getRawButton(COOP_BACK_BUTTON) && coopBackCanPress && !backingUp)
 			{
+				hasDrive = false;
 				drive.resetEncoders();
 				backingUp = true;
 				coopBackCanPress = false;
@@ -573,6 +574,8 @@ public class Robot extends SampleRobot {
 			
 			if (backingUp)
 				backingUp = !drive.reverse(2);
+			else
+				hasDrive = true;
 			
 			if (!joyDrive.getRawButton(COOP_BACK_BUTTON))
 				coopBackCanPress = true;

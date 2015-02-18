@@ -36,8 +36,10 @@ public class DriveSystemAccel extends DriveSystem {
         return instance;
     }
     
-    public void initializeEncoders(int channelA, int channelB, double pulses) {
-        super.initializeEncoders(channelA, channelB, pulses);
+    public void initializeEncoders(int rightChannelA, int rightChannelB, boolean rightReflected,
+								int leftChannelA, int leftChannelB, boolean leftReflected, double pulsesPerRev) {
+        super.initializeEncoders(rightChannelA, rightChannelB, rightReflected,
+						leftChannelA, leftChannelB, leftReflected, pulsesPerRev);
     }
     
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
@@ -78,10 +80,10 @@ public class DriveSystemAccel extends DriveSystem {
     }
 
     public boolean drive(double distance, double x, double y) {
-        enc.reset();
+        super.resetEncoders();
         x = acceleration[locs[0]].accelerateValue(0.5);
         y = acceleration[locs[2]].accelerateValue(0.5);
-        if (enc.getDistance() < distance) {
+        if (encRight.getDistance() < distance) {
             super.arcadeDrive(x, y);
             return false;
         } else {
@@ -90,10 +92,10 @@ public class DriveSystemAccel extends DriveSystem {
     }
 
     public boolean reverse(double distance, double x, double y) {
-        enc.reset();
+        super.resetEncoders();
         x = acceleration[locs[0]].accelerateValue(-0.5);
         y = acceleration[locs[2]].accelerateValue(-0.5);
-        if (Math.abs(enc.getDistance()) < distance) {
+        if (Math.abs(encRight.getDistance()) < distance) {
             super.arcadeDrive(x, y);
             return false;
         } else {
