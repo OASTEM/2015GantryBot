@@ -40,11 +40,6 @@ public class Robot extends SampleRobot {
 
 
 	// MOTORS
-	private Victor rightDriveFront;
-	private Victor rightDriveBack;
-	private Victor leftDriveFront;
-	private Victor leftDriveBack;
-
 	private CANJaguar rightLift;
 	private CANJaguar leftLift;
 
@@ -58,17 +53,18 @@ public class Robot extends SampleRobot {
 	private static final int MAN_BUTTON = 8;
 	private static final int EXIT_MAN_BUTTON = 9;
 	private static final int EMERGENCY_STOP = 11;
-	private static final int EXIT_E_STOP = 6;
+	private static final int EXIT_E_STOP_LIFT = 7;
+	private static final int EXIT_E_STOP_DRIVE = 6;
+	private static final int COOP_BACK_BUTTON = 1;
 
 	// CONSTANTS
 	private static final int PLAN_ENC_CPR = 497;
 	private static final int DRIVE_ENC_CPR = 2048;
 	private static final int LIFT_HEIGHT_LIMIT = 39;
 	private static final double LIFT_GRAD_DISTANCE = .05;
-	private static final double LIFT_BUFFER = .2;
+	private static final double LIFT_BUFFER = .5;
 	private static final double LIFT_DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
 	private static final double DRIVE_CIRCUMFERENCE = 6 * Math.PI;
-	private static final double DRIVE_GEAR_RATIO = 1/8.45;
 	private static final double RIGHT_LIFT_COMP = .5;
 
 	// instance variables
@@ -81,8 +77,8 @@ public class Robot extends SampleRobot {
 	private Joystick joyPayload;
 	private Dashboard dash;
 	private PowerDistributionPanel power;
-	private QuadratureEncoder rightEnc;
-	private QuadratureEncoder leftEnc;
+	/*private QuadratureEncoder rightEnc;
+	private QuadratureEncoder leftEnc; //*/
 	private CameraServer camera;
 
 	// AUTONOMOUS STATES
@@ -122,7 +118,7 @@ public class Robot extends SampleRobot {
 
 	public void robotInit() {
 		drive = DriveSystem.getInstance();
-		drive.initializeEncoders(RIGHT_ENC_A, RIGHT_ENC_B, DRIVE_ENC_CPR);
+		drive.initializeEncoders(RIGHT_ENC_A, RIGHT_ENC_B, true, LEFT_ENC_A, LEFT_ENC_B, false, DRIVE_ENC_CPR);
 		drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
 		drive.setSafety(false);
 
@@ -133,18 +129,15 @@ public class Robot extends SampleRobot {
 		power = new PowerDistributionPanel();
 		power.clearStickyFaults();
 
-		/*rightDriveFront = new Victor(DRIVE_RIGHT_FRONT_PORT);
-        //rightDriveBack = new Victor(DRIVE_RIGHT_BACK_PORT);
-        //leftDriveFront = new Victor(DRIVE_LEFT_FRONT_PORT);
-        leftDriveBack = new Victor(DRIVE_LEFT_BACK_PORT);
-		 */
+		
 		drive.setInvertedQuad();
 
-		//rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, true, 4, DRIVE_ENC_CPR);
-		//rightEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); // * DRIVE_GEAR_RATIO);
+		/*
+		rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, true, 4, DRIVE_ENC_CPR);
+		rightEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); // * DRIVE_GEAR_RATIO);
 		leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, 4, DRIVE_ENC_CPR);
 		leftEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); //* DRIVE_GEAR_RATIO);
-
+		//*/
 
 		if (rightLift != null)
 		{
@@ -322,28 +315,32 @@ public class Robot extends SampleRobot {
 	public void operatorControl() {
 
 		boolean slaveRight = true;
-		boolean driveOnly = false;
+		boolean liftDisabled = false;
+		boolean hasDrive = true;
+		boolean coopBackCanPress = true;
+		boolean backingUp = false;
 		int state = 0;
 		int saveState = 0;
 
 
 
-		//rightEnc.reset();
-		leftEnc.reset();
+		drive.resetEncoders();
 
 
 		while (isOperatorControl() && isEnabled()) {
-			if (driveOnly) {
+			if (liftDisabled) {
 				slaveRight = false;
 				state = E_STOP_STATE;
 			}
 
-
-			this.doArcadeDrive();
+			if (hasDrive)
+				this.doArcadeDrive();
+			
+			
 			//dash.putNumber("RIGHT DRIVE RAW", rightEnc.getRaw());
-			dash.putNumber("LEFT DRIVE RAW", leftEnc.getRaw());
-			//dash.putNumber("Right Drive: ", rightEnc.getDistance());
-			dash.putNumber("Left Drive : ", leftEnc.getDistance());
+			//dash.putNumber("LEFT DRIVE RAW", leftEnc.getRaw());
+			dash.putNumber("Right Drive: ", drive.getRightEnc()); //rightEnc.getDistance());
+			dash.putNumber("Left Drive : ", drive.getLeftEnc()); //leftEnc.getDistance());
 
 			dash.putData("PDP: ", power);
 
@@ -525,16 +522,16 @@ public class Robot extends SampleRobot {
 			}
 
 
-			if (joyPayload.getRawButton(RESET_BUTTON) && !driveOnly)
+			if (joyPayload.getRawButton(RESET_BUTTON) && !liftDisabled)
 				state = RESET;
 
-			if (joyPayload.getRawButton(MAN_BUTTON) && state != MANUAL && !driveOnly)
+			if (joyPayload.getRawButton(MAN_BUTTON) && state != MANUAL && !liftDisabled)
 			{
 				saveState = state;
 				state = MANUAL;
 			}
 
-			if(joyPayload.getRawButton(LIFT_TOGGLE) && state != COMPLETE_MANUAL && !driveOnly)
+			if(joyPayload.getRawButton(LIFT_TOGGLE) && state != COMPLETE_MANUAL && !liftDisabled)
 			{
 				slaveRight = false;
 				disableLift();
@@ -549,17 +546,36 @@ public class Robot extends SampleRobot {
 			{
 				rightLift.disableControl();
 				leftLift.disableControl();
-				driveOnly = true;
+				liftDisabled = true;
+				hasDrive = false;
+				drive.arcadeDrive(0, 0);
 				slaveRight = false;
 				state = E_STOP_STATE;
 			}
 			
-			if (joyDrive.getRawButton(EXIT_E_STOP) && state == E_STOP_STATE)
+			if (joyDrive.getRawButton(EXIT_E_STOP_LIFT) && state == E_STOP_STATE)
 			{
-				driveOnly = false;
+				liftDisabled = false;
 				slaveRight = true;
 				state = RESET;
 			}
+			
+			if (joyDrive.getRawButton(EXIT_E_STOP_DRIVE) && !hasDrive)
+				hasDrive = true;
+			
+			//COOPERATITION BACK UP
+			if (joyDrive.getRawButton(COOP_BACK_BUTTON) && coopBackCanPress && !backingUp)
+			{
+				drive.resetEncoders();
+				backingUp = true;
+				coopBackCanPress = false;
+			}
+			
+			if (backingUp)
+				backingUp = !drive.reverse(2);
+			
+			if (!joyDrive.getRawButton(COOP_BACK_BUTTON))
+				coopBackCanPress = true;
 				
 		}
 	}
