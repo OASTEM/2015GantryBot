@@ -185,18 +185,19 @@ public class Robot extends SampleRobot {
 
 
 
-	/*
-
+	
+/*
 	// JOY WANTS THESE TO BE INSTANCE VARIABLES???
 	// YES SHE DOES
 
-	private int state = 0;
+	private int autoState = 0;
 	private int resetCount = 0;
 	private long currTime = 0L;
 	private long triggerStart = 0L;
 
 	public void autonomous() {
 
+		boolean slaveRight = false;
 		while(isAutonomous() && isEnabled()) {
     		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
 			//imageProcessing();
@@ -206,53 +207,54 @@ public class Robot extends SampleRobot {
 	}
 
 	private void joytonomousStates(long currTime) {
-		switch(state) {
+		switch(autoState) {
 			case START:
 				//anything we need to go beforehand
-				state = GOTO_TOTE;
+				if (calibratedLift())
+					autoState = GOTO_TOTE;
 				break;
 			case GOTO_TOTE:
 				if(moveForward(currTime, triggerStart)) {
 					triggerStart = currTime;
-					state = UPLIFT;
+					autoState = UPLIFT;
 				}
 				break;
 			case UPLIFT:
 				if(resetCount < 3) {
 					if(hookUp(currTime, triggerStart)) {
 						triggerStart = currTime;
-						state = MOVETO_AUTO;
+						autoState = MOVETO_AUTO;
 					} 
 					if (currTime - triggerStart > 1750L) { // more adjust time as necessary
 						triggerStart = currTime;
-						state = REDO; //count attempts
+						autoState = REDO; //count attempts
 						resetCount++;
 					}
 				} else {
 					triggerStart = currTime;
-					state = MOVETO_AUTO;
+					autoState = MOVETO_AUTO;
 				}
 				break;
 			case REDO:
 				if(redo(currTime, triggerStart)) {
 					triggerStart = currTime;
-					state = UPLIFT;
+					autoState = UPLIFT;
 				}
 				break;
 			case MOVETO_AUTO:
 				if(moveAuto(currTime, triggerStart)) {
 					triggerStart = currTime;
-					state = RELEASE;
+					autoState = RELEASE;
 				} 
 				if (currTime - triggerStart > 5000L) { // adjust time as necesary
 					triggerStart = currTime;
-					state = READY;
+					autoState = READY;
 				}
 				break;
 			case RELEASE:
 				if(releaseTote(currTime, triggerStart)) {
 					triggerStart = 0;
-					state = READY;
+					autoState = READY;
 				}
 			case READY:
 				//how we want to get ready for operator control
@@ -263,7 +265,9 @@ public class Robot extends SampleRobot {
 	}
 
 	private boolean moveForward(long currTime, long triggerStart) {
-		if(!drive.drive(10) && currTime - triggerStart <= 1500L) { //lol this isn't a method but should return T/F 
+		if(!drive.forward(10) && currTime - triggerStart <= 1500L) { //lol this isn't a method but should return T/F 
+			setLift(ABOVE_TOTE);
+			doSlave();
 			return false;
 		} else {
 			return true;
@@ -508,10 +512,9 @@ public class Robot extends SampleRobot {
 				dash.putString("EXIT MANUAL Button (9): ", "Exits the COMPLETELY EMANUEL mode");
 				rightLift.set(-joyPayload.getY());
 				if (-joyPayload.getY() < 0)
-				leftLift.set(-joyPayload.getY()*1);
+					leftLift.set(-joyPayload.getY()*1);
 				else
-				leftLift.set(-joyPayload.getY()*1.07);
-
+					leftLift.set(-joyPayload.getY()*1.07);
 				if (joyPayload.getRawButton(EXIT_MAN_BUTTON) || joyPayload.getRawButton(RESET_BUTTON)){
 					state = RESET;
 				}
@@ -538,11 +541,13 @@ public class Robot extends SampleRobot {
 			if(joyPayload.getRawButton(LIFT_TOGGLE) && state != COMPLETE_MANUAL && !liftDisabled)
 			{
 				slaveRight = false;
+				double rightHeight = rightLift.getPosition();
+				double leftHeight = leftLift.getPosition();
 				disableLift();
-				rightLift.setPercentMode();
-				leftLift.setPercentMode();
-				rightLift.enableControl();
-				leftLift.enableControl();
+				rightLift.setPercentMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR);
+				leftLift.setPercentMode(CANJaguar.kQuadEncoder, PLAN_ENC_CPR);
+				rightLift.enableControl(rightHeight);
+				leftLift.enableControl(leftHeight);
 				state = COMPLETE_MANUAL;
 			}
 
@@ -582,7 +587,7 @@ public class Robot extends SampleRobot {
 			}
 			
 			if (backingUp && state != E_STOP_STATE)
-				backingUp = !drive.reverse(2);
+				backingUp = !drive.reverse(.5);
 			else if (eStopExitDrivePressed)
 				hasDrive = true;
 			
@@ -642,7 +647,8 @@ public class Robot extends SampleRobot {
 		rightLift.set(leftLift.getPosition() - (RIGHT_LIFT_COMP/LIFT_DISTANCE_PER_REV));
 	}
 
-
+	
+	
 	private boolean calibratedLift()
 	{
 		boolean ready = false;
