@@ -319,6 +319,7 @@ public class Robot extends SampleRobot {
 		boolean hasDrive = true;
 		boolean coopBackCanPress = true;
 		boolean backingUp = false;
+		boolean eStopExitDrivePressed = true;
 		int state = 0;
 		int saveState = 0;
 
@@ -548,7 +549,9 @@ public class Robot extends SampleRobot {
 				leftLift.disableControl();
 				liftDisabled = true;
 				hasDrive = false;
-				drive.arcadeDrive(0, 0);
+				backingUp = false;
+				eStopExitDrivePressed = false;
+				drive.tankDrive(0, 0);
 				slaveRight = false;
 				state = E_STOP_STATE;
 			}
@@ -561,10 +564,13 @@ public class Robot extends SampleRobot {
 			}
 			
 			if (joyDrive.getRawButton(EXIT_E_STOP_DRIVE) && !hasDrive)
+			{
 				hasDrive = true;
+				eStopExitDrivePressed = true;
+			}
 			
 			//COOPERATITION BACK UP
-			if (joyDrive.getRawButton(COOP_BACK_BUTTON) && coopBackCanPress && !backingUp)
+			if (joyDrive.getRawButton(COOP_BACK_BUTTON) && coopBackCanPress && !backingUp && hasDrive)
 			{
 				hasDrive = false;
 				drive.resetEncoders();
@@ -572,9 +578,9 @@ public class Robot extends SampleRobot {
 				coopBackCanPress = false;
 			}
 			
-			if (backingUp)
+			if (backingUp && state != E_STOP_STATE)
 				backingUp = !drive.reverse(2);
-			else
+			else if (eStopExitDrivePressed)
 				hasDrive = true;
 			
 			if (!joyDrive.getRawButton(COOP_BACK_BUTTON))

@@ -136,23 +136,23 @@ public class DriveSystem {
     }
     
     public boolean reverse(double distance) {
-        if (Math.abs(encRight.getDistance()) < distance) {
-            drive.arcadeDrive(0.5, 0.5);
-            if (hasSecondary) drive2.arcadeDrive(0.5, 0.5);
+        if (Math.abs(encRight.getDistance()) < distance || Math.abs(encLeft.getDistance()) < distance ) {
+            drive.tankDrive(0.45, 0.45);
+            if (hasSecondary) drive2.tankDrive(0.5, 0.5);
             return false;
         } else {
-            drive.arcadeDrive(0, 0);
+            drive.tankDrive(0, 0);
             return true;
         }
     }
 
     public boolean forward(double distance) {
         if (encRight.getDistance() < distance) {
-            drive.arcadeDrive(-0.35, -0.35);
-            if (hasSecondary) drive2.arcadeDrive(-0.5, -0.5);
+            drive.tankDrive(-0.35, -0.35);
+            if (hasSecondary) drive2.tankDrive(-0.5, -0.5);
             return false;
         } else {
-            drive.arcadeDrive(0, 0);
+            drive.tankDrive(0, 0);
             return true;
         }
     }
