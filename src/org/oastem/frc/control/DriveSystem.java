@@ -19,7 +19,7 @@ import java.util.Hashtable;
 public class DriveSystem {
     // Constants.
     protected static final int NUM_ITEMS = 12;
-    protected static final double DISTANCE_PER_PULSE = 6 * Math.PI;
+    protected static final double DISTANCE_PER_REVOLUTION = 6 * Math.PI; // FOR DEFAULT DRIVE WHEELS 
     
     // Singleton design pattern: instance of this class.
     // Only one drive system is allowed per robot - 
@@ -32,7 +32,8 @@ public class DriveSystem {
     private boolean hasSecondary = false;
     private RobotDrive drive2;
     
-    protected QuadratureEncoder enc;
+    protected QuadratureEncoder encRight;
+    protected QuadratureEncoder encLeft;
     
     protected DriveSystem() {
         raw = new Victor[NUM_ITEMS];
@@ -46,10 +47,24 @@ public class DriveSystem {
         return instance;
     }
     
-    public void initializeEncoders(int channelA, int channelB, double pulses) {
-        enc = new QuadratureEncoder(channelA, channelB, pulses);
-        enc.setDistancePerPulse(DISTANCE_PER_PULSE);
-        enc.reset();
+    public void initializeEncoders(int rightChannelA, int rightChannelB, boolean rightReflected,
+    								int leftChannelA, int leftChannelB, boolean leftReflected, double pulsesPerRev) {
+        encRight = new QuadratureEncoder(rightChannelA, rightChannelB, rightReflected, 4, pulsesPerRev);
+        encLeft = new QuadratureEncoder(leftChannelA, leftChannelB, leftReflected, 4, pulsesPerRev);
+        encRight.setDistancePerPulse(DISTANCE_PER_REVOLUTION);
+        encLeft.setDistancePerPulse(DISTANCE_PER_REVOLUTION);
+        encRight.reset();
+        encLeft.reset();
+    }
+    
+    public double getRightEnc()
+    {
+    	return encRight.getDistance();
+    }
+    
+    public double getLeftEnc()
+    {
+    	return encLeft.getDistance();
     }
     
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
@@ -114,8 +129,14 @@ public class DriveSystem {
         if (hasSecondary) drive2.setSafetyEnabled(false);
     }
 
+    public void resetEncoders()
+    {
+    	encRight.reset();
+    	encLeft.reset();
+    }
+    
     public boolean reverse(double distance) {
-        if (enc.getDistance() < distance) {
+        if (Math.abs(encRight.getDistance()) < distance) {
             drive.arcadeDrive(0.5, 0.5);
             if (hasSecondary) drive2.arcadeDrive(0.5, 0.5);
             return false;
@@ -126,7 +147,7 @@ public class DriveSystem {
     }
 
     public boolean forward(double distance) {
-        if (Math.abs(enc.getDistance()) < distance) {
+        if (encRight.getDistance() < distance) {
             drive.arcadeDrive(-0.35, -0.35);
             if (hasSecondary) drive2.arcadeDrive(-0.5, -0.5);
             return false;
