@@ -64,8 +64,14 @@ public class Robot extends SampleRobot {
 	private static final double LIFT_GRAD_DISTANCE = .05;
 	private static final double LIFT_BUFFER = .5;
 	private static final double LIFT_DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
-	private static final double DRIVE_CIRCUMFERENCE = 6 * Math.PI;
 	private static final double RIGHT_LIFT_COMP = .5;
+	
+	//      FOR AUTONOMOUS
+	// CHECK ALL OF THESE
+	private static final int DISTANCE_TO_TOTE = 10;
+	private static final int DISTANCE_TO_AUTO = 25;
+	private static final int DISTANCE_TO_AUTO_FROM_START = 35;
+	private static final int REV_DIST_AFTER_DROP = 4;
 
 	// instance variables
 	private static double joyScale = 1.0;
@@ -83,12 +89,12 @@ public class Robot extends SampleRobot {
 
 	// AUTONOMOUS STATES
 	public static final int START = 0;
-	public static final int GOTO_TOTE = 1;
-	public static final int UPLIFT = 2;
-	public static final int REDO = 3;
-	public static final int MOVETO_AUTO = 4;
-	public static final int RELEASE = 5;
-	public static final int READY = 6;
+	public static final int PREPARE_LIFT = 1;
+	public static final int GOTO_TOTE = 2;
+	public static final int UPLIFT = 3;
+	public static final int MOVETO_AUTO = 5;
+	public static final int RELEASE = 6;
+	public static final int READY = 7;
 
 
 	// CLAW HEIGHTS
@@ -184,25 +190,36 @@ public class Robot extends SampleRobot {
 	}
 
 
-
 	
-/*
+
 	// JOY WANTS THESE TO BE INSTANCE VARIABLES???
 	// YES SHE DOES
+	
+	// AUTONOMOUS MODES
+	private static final int DRIVE_AND_PICK_UP_TOTE_MODE = 0;
+	private static final int DRIVE_STRAIGHT_MODE = 1;
 
 	private int autoState = 0;
-	private int resetCount = 0;
 	private long currTime = 0L;
 	private long triggerStart = 0L;
 
 	public void autonomous() {
 
-		boolean slaveRight = false;
+		int mode = DRIVE_AND_PICK_UP_TOTE_MODE;
 		while(isAutonomous() && isEnabled()) {
     		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
 			//imageProcessing();
 			currTime = System.currentTimeMillis();
-			joytonomousStates(currTime); 
+			if (mode == DRIVE_AND_PICK_UP_TOTE_MODE)
+			{
+				joytonomousStates(currTime);
+				if (autoState != START)
+					doSlave();
+			}
+			else if (mode == DRIVE_STRAIGHT_MODE)
+			{
+				moveDirectlyToAuto(currTime, triggerStart);
+			}
 		}
 	}
 
@@ -211,7 +228,17 @@ public class Robot extends SampleRobot {
 			case START:
 				//anything we need to go beforehand
 				if (calibratedLift())
+				{
+					triggerStart = currTime;
+					autoState = PREPARE_LIFT;
+				}
+				break;
+			case PREPARE_LIFT:
+				if (liftDone(currTime, triggerStart))
+				{
+					triggerStart = currTime;
 					autoState = GOTO_TOTE;
+				}
 				break;
 			case GOTO_TOTE:
 				if(moveForward(currTime, triggerStart)) {
@@ -220,33 +247,17 @@ public class Robot extends SampleRobot {
 				}
 				break;
 			case UPLIFT:
-				if(resetCount < 3) {
-					if(hookUp(currTime, triggerStart)) {
-						triggerStart = currTime;
-						autoState = MOVETO_AUTO;
-					} 
-					if (currTime - triggerStart > 1750L) { // more adjust time as necessary
-						triggerStart = currTime;
-						autoState = REDO; //count attempts
-						resetCount++;
-					}
-				} else {
+				if(hookUp(currTime, triggerStart)) {
 					triggerStart = currTime;
 					autoState = MOVETO_AUTO;
-				}
-				break;
-			case REDO:
-				if(redo(currTime, triggerStart)) {
-					triggerStart = currTime;
-					autoState = UPLIFT;
-				}
+				} 
 				break;
 			case MOVETO_AUTO:
 				if(moveAuto(currTime, triggerStart)) {
 					triggerStart = currTime;
 					autoState = RELEASE;
 				} 
-				if (currTime - triggerStart > 5000L) { // adjust time as necesary
+				if (currTime - triggerStart > 15000L) { // adjust time as necesary
 					triggerStart = currTime;
 					autoState = READY;
 				}
@@ -256,18 +267,26 @@ public class Robot extends SampleRobot {
 					triggerStart = 0;
 					autoState = READY;
 				}
+				break;
 			case READY:
 				//how we want to get ready for operator control
+				calibratedLift();
+				break;
 			default: 
 				System.out.println("Kms");
 				break; //ihy
 		}
 	}
 
+	private boolean liftDone(long currTime, long triggerStart)
+	{
+		setLift(ABOVE_TOTE);
+		return checkHeight(ABOVE_TOTE)
+				|| (currTime - triggerStart > 15000L);
+	}
+	
 	private boolean moveForward(long currTime, long triggerStart) {
-		if(!drive.forward(10) && currTime - triggerStart <= 1500L) { //lol this isn't a method but should return T/F 
-			setLift(ABOVE_TOTE);
-			doSlave();
+		if(!drive.forward(DISTANCE_TO_TOTE) && currTime - triggerStart <= 15000L) { //lol this isn't a method but should return T/F
 			return false;
 		} else {
 			return true;
@@ -275,41 +294,56 @@ public class Robot extends SampleRobot {
 	}
 
 	private boolean hookUp(long currTime, long triggerStart) {
-		drive.upToHook(); //lol I wish this were already a method
-		if(!robot.checkHooked()) { //however long it takes to hook the tote
-			return false;
+		long safetyTime = 15000L; // WE NEED TO CHECK THIS
+		setLift(BOTTOM);
+		//drive.upToHook(); //lol I wish this were already a method
+		if(checkHeight(BOTTOM)) { //however long it takes to hook the tote
+			setLift(TOTE_DRIVE);
+			return checkHeight(TOTE_DRIVE) || (currTime - triggerStart > safetyTime);
 		} else {
-			return true;
-		}
-	}
-
-	private boolean redo(long currTime, long triggerStart) {
-		robot.downToUnhook();
-		if (!robot.drive(justSmallDistanceToReposition) && currTime - triggerStart <= 1000L) {
-			return false;
-		} else {
-			return true;
+			return currTime - triggerStart > safetyTime;
 		}
 	}
 
 	private boolean moveAuto(long currTime, long triggerStart) {
-		if(!robot.drive(distanceToAuto)) {
+		return drive.forward(DISTANCE_TO_AUTO);
+		/*
+		if(!drive.forward(distanceToAuto)) {
 			return false;
 		} else {
 			return true;
-		}
+		}*/
 	}
 
 	private boolean releaseTote(long currTime, long triggerStart) {
-		robot.downToUnhook();
-		if(robot.checkHooked() && currTime - triggerStart <= 1500L) {
+		setLift(BOTTOM);
+		if(!checkHeight(BOTTOM) && currTime - triggerStart <= 15000L) {
 			return false;
 		} else {
-			robot.reverse(justSmallDistanceToReposition);
+			drive.reverse(REV_DIST_AFTER_DROP); // MIGHT NOT NEED THIS
 			return true;
 		}
 	}
-	 */
+	
+	// returns true if at the right height
+	private boolean checkHeight(int liftHeight)
+	{
+		return (Math.abs(rightLift.getPosition()*LIFT_DISTANCE_PER_REV - liftHeight) < LIFT_BUFFER + RIGHT_LIFT_COMP) && (Math.abs(leftLift.getPosition()*LIFT_DISTANCE_PER_REV - liftHeight) < LIFT_BUFFER );
+	}
+	
+	
+	private void moveDirectlyToAuto(long currTime, long triggerStart)
+	{
+		if (currTime - triggerStart <= 15000L) // FIGURE OUT THIS TIME
+		{
+			drive.forward(DISTANCE_TO_AUTO_FROM_START); 
+		}
+		else
+		{
+			drive.tankDrive(0, 0);
+		}
+	}
+	
 
 
 
@@ -697,9 +731,7 @@ public class Robot extends SampleRobot {
 		rightLift = new CANJaguar(RIGHT_LIFT_PORT);
 	}
 
-	private void moveDistance(double distance){
-
-	}
+	
 
 	/**
 	 * Runs during test mode
