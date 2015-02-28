@@ -545,8 +545,10 @@ public class Robot extends SampleRobot {
 				dash.putString("BIN Button (4): ", "COMPLETELY EMANUEL; move using JOYSTICK");
 				dash.putString("EXIT MANUAL Button (9): ", "Exits the COMPLETELY EMANUEL mode");
 				rightLift.set(-joyPayload.getY());
-				leftLift.set(-joyPayload.getY()*1.15);
-				correctLift();
+				if (-joyPayload.getY() < 0)
+					leftLift.set(-joyPayload.getY()*1);
+				else
+					leftLift.set(-joyPayload.getY()*1.07);
 				if (joyPayload.getRawButton(EXIT_MAN_BUTTON) || joyPayload.getRawButton(RESET_BUTTON)){
 					state = RESET;
 				}
@@ -619,7 +621,7 @@ public class Robot extends SampleRobot {
 			}
 			
 			if (backingUp && state != E_STOP_STATE)
-				backingUp = !drive.reverse(2);
+				backingUp = !drive.reverse(.5);
 			else if (eStopExitDrivePressed)
 				hasDrive = true;
 			
@@ -679,13 +681,7 @@ public class Robot extends SampleRobot {
 		rightLift.set(leftLift.getPosition() - (RIGHT_LIFT_COMP/LIFT_DISTANCE_PER_REV));
 	}
 
-	private void correctLift()
-	{
-		if (rightLift.getPosition() + LIFT_BUFFER < leftLift.getPosition())
-			leftLift.set(-joyPayload.getY() + .01);
-		else if (leftLift.getPosition() < rightLift.getPosition() + LIFT_BUFFER)
-			rightLift.set(-joyPayload.getY() + .01);
-	}
+	
 	
 	private boolean calibratedLift()
 	{
