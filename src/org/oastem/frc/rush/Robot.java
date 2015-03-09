@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream.PutField;
 
 import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GearTooth;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -37,6 +38,9 @@ public class Robot extends SampleRobot {
 	private static final int LEFT_ENC_I = 1;
 	private static final int LEFT_ENC_A = 2;
 	private static final int LEFT_ENC_B = 0;
+	
+	private static final int SWITCH_ONE_PORT = 8;
+	private static final int SWITCH_TWO_PORT = 9;
 
 
 	// MOTORS
@@ -86,6 +90,8 @@ public class Robot extends SampleRobot {
 	/*private QuadratureEncoder rightEnc;
 	private QuadratureEncoder leftEnc; //*/
 	private CameraServer camera;
+	private DigitalInput autoSwitchOne;
+	private DigitalInput autoSwitchTwo;
 
 	// AUTONOMOUS STATES
 	public static final int START = 0;
@@ -123,6 +129,7 @@ public class Robot extends SampleRobot {
 
 
 	public void robotInit() {
+		
 		drive = DriveSystem.getInstance();
 		drive.initializeEncoders(RIGHT_ENC_A, RIGHT_ENC_B, true, LEFT_ENC_A, LEFT_ENC_B, false, DRIVE_ENC_CPR);
 		drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
@@ -144,7 +151,7 @@ public class Robot extends SampleRobot {
 		leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, 4, DRIVE_ENC_CPR);
 		leftEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); //* DRIVE_GEAR_RATIO);
 		//*/
-
+		
 		if (rightLift != null)
 		{
 			System.out.println("Right freed");
@@ -163,6 +170,9 @@ public class Robot extends SampleRobot {
 
 		joyDrive = new Joystick(0);
 		joyPayload = new Joystick(1);
+		
+		autoSwitchOne = new DigitalInput(SWITCH_ONE_PORT);
+		autoSwitchTwo = new DigitalInput(SWITCH_TWO_PORT);
 
 		dash = new Dashboard();
 		System.out.println("Robot Initialized");
@@ -204,8 +214,12 @@ public class Robot extends SampleRobot {
 	private long triggerStart = 0L;
 
 	public void autonomous() {
-
-		int mode = DRIVE_AND_PICK_UP_TOTE_MODE;
+		int mode = 0;
+		if (autoSwitchOne.get() && autoSwitchTwo.get())
+			mode = DRIVE_AND_PICK_UP_TOTE_MODE;
+		else if (!autoSwitchOne.get() && !autoSwitchTwo.get())
+			mode = DRIVE_STRAIGHT_MODE;
+		
 		while(isAutonomous() && isEnabled()) {
     		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
 			//imageProcessing();
