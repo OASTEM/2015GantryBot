@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.Victor;
 
 import org.oastem.frc.Dashboard;
 import org.oastem.frc.control.DriveSystem;
+import org.oastem.frc.control.DriveSystemAccel;
 import org.oastem.frc.sensor.QuadratureEncoder;
 
 
@@ -29,9 +30,11 @@ public class Robot extends SampleRobot {
 	private static final int DRIVE_LEFT_BACK_PORT = 1;
 
 	// SENSOR PORTS
+	//Jaguar CAN IDs
 	private static final int RIGHT_LIFT_PORT = 4;
 	private static final int LEFT_LIFT_PORT = 3;
 
+	//Encoders
 	private static final int RIGHT_ENC_I = 4;
 	private static final int RIGHT_ENC_A = 5;
 	private static final int RIGHT_ENC_B = 3;
@@ -39,13 +42,10 @@ public class Robot extends SampleRobot {
 	private static final int LEFT_ENC_A = 2;
 	private static final int LEFT_ENC_B = 0;
 	
+	//Autonomous 
 	private static final int SWITCH_ONE_PORT = 8;
 	private static final int SWITCH_TWO_PORT = 9;
 
-
-	// MOTORS
-	private CANJaguar rightLift;
-	private CANJaguar leftLift;
 
 	// JOYSTICK BUTTONS
 	private static final int LIFT_UP = 6;
@@ -60,6 +60,8 @@ public class Robot extends SampleRobot {
 	private static final int EXIT_E_STOP_LIFT = 7;
 	private static final int EXIT_E_STOP_DRIVE = 6;
 	private static final int COOP_BACK_BUTTON = 1;
+	private static final int ENABLE_ACCEL = 3;
+	private static final int DISABLE_ACCEL = 2;
 
 	// CONSTANTS
 	private static final int PLAN_ENC_CPR = 497;
@@ -72,6 +74,7 @@ public class Robot extends SampleRobot {
 	
 	//      FOR AUTONOMOUS
 	// CHECK ALL OF THESE
+	/********* MUST CHECK *****************/
 	private static final int DISTANCE_TO_TOTE = 10;
 	private static final int DISTANCE_TO_AUTO = 25;
 	private static final int DISTANCE_TO_AUTO_FROM_START = 35;
@@ -80,9 +83,13 @@ public class Robot extends SampleRobot {
 	// instance variables
 	private static double joyScale = 1.0;
 
+	// MOTORS
+	private CANJaguar rightLift;
+	private CANJaguar leftLift;
 
 	// DECLARING OBJECTS
 	private DriveSystem drive;
+	private DriveSystemAccel accelDrive;
 	private Joystick joyDrive;
 	private Joystick joyPayload;
 	private Dashboard dash;
@@ -130,20 +137,28 @@ public class Robot extends SampleRobot {
 
 	public void robotInit() {
 		
+		// Initialize Drive
 		drive = DriveSystem.getInstance();
 		drive.initializeEncoders(RIGHT_ENC_A, RIGHT_ENC_B, true, LEFT_ENC_A, LEFT_ENC_B, false, DRIVE_ENC_CPR);
 		drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
+		drive.setInvertedQuad();
 		drive.setSafety(false);
+		
+		// Initialize Acceleration Drive
+		accelDrive = DriveSystemAccel.getInstance();
+		accelDrive.setSafety(false);
+		accelDrive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
 
+		// Initialize camera
 		camera = CameraServer.getInstance();
 		camera.setQuality(50);
 		camera.startAutomaticCapture("cam0");
 
+		// Used to display PDP on Dashboard
 		power = new PowerDistributionPanel();
 		power.clearStickyFaults();
 
 		
-		drive.setInvertedQuad();
 
 		/*
 		rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, true, 4, DRIVE_ENC_CPR);
@@ -201,7 +216,7 @@ public class Robot extends SampleRobot {
 
 
 	
-
+	/********** CHECK AUTONOMOUS **********/
 	// JOY WANTS THESE TO BE INSTANCE VARIABLES???
 	// YES SHE DOES
 	
@@ -219,6 +234,10 @@ public class Robot extends SampleRobot {
 			mode = DRIVE_AND_PICK_UP_TOTE_MODE;
 		else if (!autoSwitchOne.get() && !autoSwitchTwo.get())
 			mode = DRIVE_STRAIGHT_MODE;
+		else if (autoSwitchOne.get() && !autoSwitchTwo.get())
+			mode = 3;
+		else if (!autoSwitchOne.get() && autoSwitchTwo.get())
+			mode = 4;
 		
 		while(isAutonomous() && isEnabled()) {
     		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
@@ -372,6 +391,7 @@ public class Robot extends SampleRobot {
 		boolean coopBackCanPress = true;
 		boolean backingUp = false;
 		boolean eStopExitDrivePressed = true;
+		boolean accel = false;
 		int state = 0;
 		int saveState = 0;
 
@@ -385,9 +405,16 @@ public class Robot extends SampleRobot {
 				slaveRight = false;
 				state = E_STOP_STATE;
 			}
+			
+			// TOGGLE BETWEEN ACCEL OR NOT
+			/********** CHECK ******************/
+			if(joyDrive.getRawButton(ENABLE_ACCEL))
+				accel = true;
+			else if(joyDrive.getRawButton(DISABLE_ACCEL))
+				accel = false;
 
 			if (hasDrive)
-				this.doArcadeDrive();
+				this.doArcadeDrive(accel);
 			
 			
 			//dash.putNumber("RIGHT DRIVE RAW", rightEnc.getRaw());
@@ -401,6 +428,8 @@ public class Robot extends SampleRobot {
 				doSlave();
 
 
+			dash.putBoolean("Accel is on?", accel);
+			
 			dash.putBoolean("LEFT: Limit Switch forward", leftLift.getForwardLimitOK());
 			dash.putBoolean("LEFT: Limit Switch reverse", leftLift.getReverseLimitOK());
 			dash.putBoolean("RIGHT: Limit Switch forward", rightLift.getForwardLimitOK());
@@ -625,6 +654,7 @@ public class Robot extends SampleRobot {
 				eStopExitDrivePressed = true;
 			}
 			
+			/********* THIS MIGHT NOT WORK ********/
 			//COOPERATITION BACK UP
 			if (joyDrive.getRawButton(COOP_BACK_BUTTON) && coopBackCanPress && !backingUp && hasDrive)
 			{
@@ -645,7 +675,7 @@ public class Robot extends SampleRobot {
 		}
 	}
 
-	private void doArcadeDrive() {
+	private void doArcadeDrive(boolean hasAccel) {
 		double leftMove = 0.0;
 		double rightMove = 0.0;
 		double zone = 0.04;
@@ -668,7 +698,10 @@ public class Robot extends SampleRobot {
 		leftMove *= joyScale * -1;
 		rightMove *= joyScale * -1;
 
-		drive.tankDrive(leftMove, rightMove);
+		if (hasAccel)
+			accelDrive.tankDrive(leftMove, rightMove);
+		else
+			drive.tankDrive(leftMove, rightMove);
 	}
 
 	private double scaleZ(double rawZ) {
