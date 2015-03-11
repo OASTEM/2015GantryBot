@@ -88,8 +88,7 @@ public class Robot extends SampleRobot {
 	private CANJaguar leftLift;
 
 	// DECLARING OBJECTS
-	private DriveSystem drive;
-	private DriveSystemAccel accelDrive;
+	private DriveSystemAccel drive;
 	private Joystick joyDrive;
 	private Joystick joyPayload;
 	private Dashboard dash;
@@ -138,16 +137,13 @@ public class Robot extends SampleRobot {
 	public void robotInit() {
 		
 		// Initialize Drive
-		drive = DriveSystem.getInstance();
+		drive = DriveSystemAccel.getInstance();
 		drive.initializeEncoders(RIGHT_ENC_A, RIGHT_ENC_B, true, LEFT_ENC_A, LEFT_ENC_B, false, DRIVE_ENC_CPR);
 		drive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
 		drive.setInvertedQuad();
 		drive.setSafety(false);
 		
-		// Initialize Acceleration Drive
-		accelDrive = DriveSystemAccel.getInstance();
-		accelDrive.setSafety(false);
-		accelDrive.initializeDrive(DRIVE_LEFT_FRONT_PORT, DRIVE_LEFT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT, DRIVE_RIGHT_BACK_PORT);
+		
 
 		// Initialize camera
 		camera = CameraServer.getInstance();
@@ -192,6 +188,7 @@ public class Robot extends SampleRobot {
 		dash = new Dashboard();
 		System.out.println("Robot Initialized");
 	}
+	
 
 	private void initRightLift()
 	{
@@ -416,6 +413,10 @@ public class Robot extends SampleRobot {
 			if (hasDrive)
 				this.doArcadeDrive(accel);
 			
+			if (slaveRight && state != RESET)
+				doSlave();
+			
+			// OUTPUTS TO SMARTDASHBOARD
 			
 			//dash.putNumber("RIGHT DRIVE RAW", rightEnc.getRaw());
 			//dash.putNumber("LEFT DRIVE RAW", leftEnc.getRaw());
@@ -423,10 +424,6 @@ public class Robot extends SampleRobot {
 			dash.putNumber("Left Drive : ", drive.getLeftEnc()); //leftEnc.getDistance());
 
 			dash.putData("PDP: ", power);
-
-			if (slaveRight && state != RESET)
-				doSlave();
-
 
 			dash.putBoolean("Accel is on?", accel);
 			
@@ -699,9 +696,9 @@ public class Robot extends SampleRobot {
 		rightMove *= joyScale * -1;
 
 		if (hasAccel)
-			accelDrive.tankDrive(leftMove, rightMove);
+			drive.accelTankDrive(leftMove, rightMove);
 		else
-			drive.tankDrive(leftMove, rightMove);
+			drive.regTankDrive(leftMove, rightMove);
 	}
 
 	private double scaleZ(double rawZ) {

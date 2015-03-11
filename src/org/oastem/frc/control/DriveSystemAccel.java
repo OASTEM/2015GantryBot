@@ -73,10 +73,14 @@ public class DriveSystemAccel extends DriveSystem {
         super.set(vic,power);
     }
     
-    public void tankDrive(double x, double y) {
+    public void accelTankDrive(double x, double y) {
         x = acceleration[locs[0]].accelerateValue(x);
         y = acceleration[locs[2]].accelerateValue(y);
         super.tankDrive(x,y);
+    }
+    
+    public void regTankDrive(double x, double y){
+    	super.tankDrive(x,y);
     }
 
     public boolean drive(double distance, double x, double y) {
@@ -91,7 +95,7 @@ public class DriveSystemAccel extends DriveSystem {
         }
     }
 
-    public boolean reverse(double distance, double x, double y) {
+    public boolean back(double distance, double x, double y) {
         super.resetEncoders();
         x = acceleration[locs[0]].accelerateValue(-0.5);
         y = acceleration[locs[2]].accelerateValue(-0.5);
