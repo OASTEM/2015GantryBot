@@ -71,6 +71,7 @@ public class Robot extends SampleRobot {
 	private static final double LIFT_BUFFER = .5;
 	private static final double LIFT_DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
 	private static final double RIGHT_LIFT_COMP = .5;
+	private static final double WHEEL_CIRCUMFERENCE = 6 * Math.PI;
 	
 	//      FOR AUTONOMOUS
 	// CHECK ALL OF THESE
@@ -220,6 +221,8 @@ public class Robot extends SampleRobot {
 	// AUTONOMOUS MODES
 	private static final int DRIVE_AND_PICK_UP_TOTE_MODE = 0;
 	private static final int DRIVE_STRAIGHT_MODE = 1;
+	private static final int DEFAULT_DO_NOTHING_MODE = 3;
+	private static final int TEST_DISTANCE = 4;
 
 	private int autoState = 0;
 	private long currTime = 0L;
@@ -232,9 +235,9 @@ public class Robot extends SampleRobot {
 		else if (!autoSwitchOne.get() && !autoSwitchTwo.get())
 			mode = DRIVE_STRAIGHT_MODE;
 		else if (autoSwitchOne.get() && !autoSwitchTwo.get())
-			mode = 3;
+			mode = DEFAULT_DO_NOTHING_MODE;
 		else if (!autoSwitchOne.get() && autoSwitchTwo.get())
-			mode = 4;
+			mode = TEST_DISTANCE;
 		
 		while(isAutonomous() && isEnabled()) {
     		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
@@ -249,6 +252,14 @@ public class Robot extends SampleRobot {
 			else if (mode == DRIVE_STRAIGHT_MODE)
 			{
 				moveDirectlyToAuto(currTime, triggerStart);
+			}
+			else if (mode == TEST_DISTANCE)
+			{
+				drive.reverse(WHEEL_CIRCUMFERENCE);
+			}
+			else if (mode == DEFAULT_DO_NOTHING_MODE)
+			{
+				// Sit on the field and look pretty
 			}
 		}
 	}

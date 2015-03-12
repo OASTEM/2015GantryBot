@@ -20,6 +20,9 @@ public class DriveSystem {
     // Constants.
     protected static final int NUM_ITEMS = 12;
     protected static final double DISTANCE_PER_REVOLUTION = 6 * Math.PI; // FOR DEFAULT DRIVE WHEELS 
+    protected static final double AUTO_DRIVE_POWER = 0.45; // percentage between 0 and 1
+    protected static final double CORRECTION = .1;
+    protected static final double BUFFER = .5;
     
     // Singleton design pattern: instance of this class.
     // Only one drive system is allowed per robot - 
@@ -137,8 +140,10 @@ public class DriveSystem {
     
     public boolean reverse(double distance) {
         if (Math.abs(encRight.getDistance()) < distance || Math.abs(encLeft.getDistance()) < distance ) {
-            drive.tankDrive(0.45, 0.45);
-            if (hasSecondary) drive2.tankDrive(0.5, 0.5);
+            drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
+            /**********/
+            //keepStraight();
+            if (hasSecondary) drive2.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
             return false;
         } else {
             drive.tankDrive(0, 0);
@@ -148,13 +153,55 @@ public class DriveSystem {
 
     public boolean forward(double distance) {
         if (encRight.getDistance() < distance) {
-            drive.tankDrive(-0.35, -0.35);
-            if (hasSecondary) drive2.tankDrive(-0.5, -0.5);
+            drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
+            /**********/
+            //keepStraight();
+            if (hasSecondary) drive2.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
             return false;
         } else {
             drive.tankDrive(0, 0);
             return true;
         }
+    }
+    
+    /**** IMPLEMENT hasSecondary NEXT YEAR SPRING ****/
+    private void keepStraight()
+    {
+    	double rightVal = encRight.getDistance();
+    	double leftVal = encLeft.getDistance();
+    	// FORWARD
+    	if (encRight.isGoingForward() && encLeft.isGoingForward())
+    	{    		
+    		if (leftVal + BUFFER < rightVal)
+    		{
+    			drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER + CORRECTION);
+    		}
+    		else if (rightVal + BUFFER < leftVal)
+    		{
+    			drive.tankDrive(-AUTO_DRIVE_POWER + CORRECTION, -AUTO_DRIVE_POWER);
+    		}
+    		else
+    		{
+    			drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
+    		}
+    	}
+    	
+    	//BACKWARD
+    	else if (!encRight.isGoingForward() && !encLeft.isGoingForward())
+    	{    		
+    		if (leftVal < rightVal - BUFFER)
+    		{
+    			drive.tankDrive(AUTO_DRIVE_POWER - CORRECTION, AUTO_DRIVE_POWER);
+    		}
+    		else if (rightVal < leftVal - BUFFER)
+    		{
+    			drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER - CORRECTION);
+    		}
+    		else
+    		{
+    			drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
+    		}
+    	}
     }
     
     public void setInvertedDouble() {
