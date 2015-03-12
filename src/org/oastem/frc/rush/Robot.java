@@ -76,10 +76,10 @@ public class Robot extends SampleRobot {
 	//      FOR AUTONOMOUS
 	// CHECK ALL OF THESE
 	/********* MUST CHECK *****************/
-	private static final int DISTANCE_TO_TOTE = 10;
-	private static final int DISTANCE_TO_AUTO = 25;
-	private static final int DISTANCE_TO_AUTO_FROM_START = 35;
-	private static final int REV_DIST_AFTER_DROP = 4;
+	private static final int DISTANCE_TO_TOTE = 48;
+	private static final int DISTANCE_TO_AUTO = 72;
+	private static final int DISTANCE_TO_AUTO_FROM_START = 60;
+	private static final int REV_DIST_AFTER_DROP = 24;
 
 	// instance variables
 	private static double joyScale = 1.0;
