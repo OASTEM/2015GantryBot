@@ -64,6 +64,10 @@ public class Robot extends SampleRobot {
 	private static final int DISABLE_ACCEL = 2;
 	private static final int MOVE_TO_BOTTOM_BUTTON = 3;
 	private static final int DIRECTLY_TO_SECOND_BUTTON = 2;
+	private static final int TURN_COUNTERCLOCK = 4;
+	private static final int TURN_CLOCK = 5;
+	private static final int PIVOT_TURN_LEFT = 8;
+	private static final int PIVOT_TURN_RIGHT = 9;
 
 	// CONSTANTS
 	private static final int PLAN_ENC_CPR = 497;
@@ -71,10 +75,13 @@ public class Robot extends SampleRobot {
 	private static final int LIFT_HEIGHT_LIMIT = 39;
 	private static final double LIFT_GRAD_DISTANCE = .5;
 	private static final double LIFT_BUFFER = .5;
+	private static final double MAN_LIFT_BUFFER = 0;
 	private static final double LIFT_DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
 	private static final double RIGHT_LIFT_COMP = .5;
 	private static final double WHEEL_CIRCUMFERENCE = 6 * Math.PI;
-	private static final double AUTO_DRIVE_POWER = 0.65; // percentage between 0 and 1
+	private static final double AUTO_DRIVE_POWER = 0.60; // percentage between 0 and 1
+	private static final double TURN_POWER = 0.875;
+	private static final double LIFT_COMPENSATION_SPEED = 0.5;
 	
 	//      FOR AUTONOMOUS
 	// CHECK ALL OF THESE
@@ -151,7 +158,7 @@ public class Robot extends SampleRobot {
 		
 		
 
-		// Initialize camera
+		// Initialize camera 
 		camera = CameraServer.getInstance();
 		camera.setQuality(50);
 		camera.startAutomaticCapture("cam0");
@@ -222,7 +229,7 @@ public class Robot extends SampleRobot {
 	
 	/********** CHECK AUTONOMOUS **********/
 	// JOY WANTS THESE TO BE INSTANCE VARIABLES???
-	// YES SHE DOES
+	// YES SHE DOES 
 	
 	// AUTONOMOUS MODES
 	private static final int DRIVE_AND_PICK_UP_TOTE_MODE = 0;
@@ -235,7 +242,11 @@ public class Robot extends SampleRobot {
 	private long triggerStart = 0L;
 
 	public void autonomous() {
+		dash.putString("Auto_Debug_A", "Method Called");
 		int mode = 0;
+		if (triggerStart == 0L){
+			triggerStart = System.currentTimeMillis();
+		}
 		if (autoSwitchOne.get() && autoSwitchTwo.get())
 			mode = DRIVE_BACKWARD_MODE;
 		else if (autoSwitchOne.get() && !autoSwitchTwo.get())
@@ -244,6 +255,8 @@ public class Robot extends SampleRobot {
 			mode = TEST_DISTANCE;
 		else if (!autoSwitchOne.get() && !autoSwitchTwo.get())
 			mode = DEFAULT_DO_NOTHING_MODE;
+		
+		System.out.print(mode);
 		
 		drive.resetEncoders();
 		
@@ -256,9 +269,12 @@ public class Robot extends SampleRobot {
 			dash.putString("LEFT enc:", "" + drive.getLeftEnc());
 			if (mode == DRIVE_BACKWARD_MODE)
 			{
-				if (currTime - triggerStart <= 4000L)
+				dash.putString("Auto_Debug_B", "while called");
+				if (currTime - triggerStart <=  2500L)
 					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
-				else if (currTime - triggerStart <= 4500L)
+				else if (currTime - triggerStart <= 3000L)
+					drive.tankDrive(0, 0);
+				else if (currTime - triggerStart <= 3350L)
 					drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
 				else
 					drive.tankDrive(0, 0);
@@ -276,7 +292,7 @@ public class Robot extends SampleRobot {
 			}
 			else if (mode == DRIVE_AND_PICK_UP_TOTE_MODE)
 			{
-				/******* Sorry Joy. :'( *******/
+				/******* Sorry Joy. :'( RIP in pepperoni*******/
 				/*
 				joytonomousStates(currTime);
 				if (autoState != START)
@@ -285,7 +301,10 @@ public class Robot extends SampleRobot {
 			}
 			else if (mode == TEST_DISTANCE)
 			{
-				
+				if (currTime - triggerStart <=  2500L)
+					drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
+				else
+					drive.tankDrive(0, 0);
 			}
 			else if (mode == DEFAULT_DO_NOTHING_MODE)
 			{
@@ -469,10 +488,26 @@ public class Robot extends SampleRobot {
 				accel = true;
 			else if(joyDrive.getRawButton(DISABLE_ACCEL))
 				accel = false;
-
-			if (hasDrive)
-				this.doArcadeDrive(accel);
 			
+			 if (joyDrive.getRawButton(TURN_COUNTERCLOCK)){
+				 drive.tankDrive(TURN_POWER * joyScale, TURN_POWER * joyScale * -1);
+				 //drive.tankDrive(-1, 1);
+			 }
+			 
+			 else if (joyDrive.getRawButton(TURN_CLOCK)){
+				 drive.tankDrive(TURN_POWER * joyScale * -1, TURN_POWER * joyScale);
+				 //drive.tankDrive(1, -1);
+			 }
+			 else if (joyDrive.getRawButton(PIVOT_TURN_LEFT)){
+				 drive.tankDrive(TURN_POWER * joyScale * -1, 0);
+			 }
+			 else if (joyDrive.getRawButton(PIVOT_TURN_RIGHT)){
+				 drive.tankDrive(0, TURN_POWER * joyScale * -1);
+			 }
+			 else if (hasDrive) {
+				 this.doArcadeDrive(accel);
+			 }
+			 
 			if (slaveRight && state != RESET)
 				doSlave();
 			
@@ -677,6 +712,9 @@ public class Robot extends SampleRobot {
 					leftLift.set(-joyPayload.getY()*1);
 				else
 					leftLift.set(-joyPayload.getY()*1.07);
+				if (leftLift.getPosition() + MAN_LIFT_BUFFER < rightLift.getPosition()){
+					leftLift.set(LIFT_COMPENSATION_SPEED);
+				}
 				if (joyPayload.getRawButton(EXIT_MAN_BUTTON) || joyPayload.getRawButton(RESET_BUTTON)){
 					state = RESET;
 				}
