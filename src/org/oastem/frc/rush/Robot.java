@@ -709,7 +709,7 @@ public class Robot extends SampleRobot {
 				dash.putString("EXIT MANUAL Button (9): ", "Exits the COMPLETELY EMANUEL mode");
 				rightLift.set(-joyPayload.getY());
 				if (-joyPayload.getY() < 0)
-					leftLift.set(-joyPayload.getY()*1);
+					leftLift.set(-joyPayload.getY()*1.07);
 				else
 					leftLift.set(-joyPayload.getY()*1.07);
 				if (leftLift.getPosition() + MAN_LIFT_BUFFER < rightLift.getPosition()){
