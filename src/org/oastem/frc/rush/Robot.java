@@ -158,11 +158,13 @@ public class Robot extends SampleRobot {
 		
 		
 
+		/*
 		// Initialize camera 
 		camera = CameraServer.getInstance();
 		camera.setQuality(50);
 		camera.startAutomaticCapture("cam0");
-
+		//*/
+		
 		// Used to display PDP on Dashboard
 		power = new PowerDistributionPanel();
 		power.clearStickyFaults();
