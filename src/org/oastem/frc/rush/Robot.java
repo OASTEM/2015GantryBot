@@ -104,7 +104,7 @@ public class Robot extends SampleRobot {
 	private Joystick joyPayload;
 	private Dashboard dash;
 	private PowerDistributionPanel power;
-	/*private QuadratureEncoder rightEnc;
+	private QuadratureEncoder rightEnc;
 	private QuadratureEncoder leftEnc; //*/
 	private CameraServer camera;
 	private DigitalInput autoSwitchOne;
@@ -147,6 +147,7 @@ public class Robot extends SampleRobot {
 	private static final int MOVE_TO_BUTTOM = 12;
 
 
+	
 	public void robotInit() {
 		
 		// Initialize Drive
@@ -169,12 +170,12 @@ public class Robot extends SampleRobot {
 
 		
 
-		/*
+		
 		rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, true, 4, DRIVE_ENC_CPR);
-		rightEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); // * DRIVE_GEAR_RATIO);
+		rightEnc.setDistancePerPulse(WHEEL_CIRCUMFERENCE); // * DRIVE_GEAR_RATIO);
 		leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, 4, DRIVE_ENC_CPR);
-		leftEnc.setDistancePerPulse(DRIVE_CIRCUMFERENCE); //* DRIVE_GEAR_RATIO);
-		//*/
+		leftEnc.setDistancePerPulse(WHEEL_CIRCUMFERENCE); //* DRIVE_GEAR_RATIO);
+		
 		
 		if (rightLift != null)
 		{
@@ -269,6 +270,9 @@ public class Robot extends SampleRobot {
 			dash.putString("LEFT enc:", "" + drive.getLeftEnc());
 			if (mode == DRIVE_BACKWARD_MODE)
 			{
+				if (rightEnc.get() > -WHEEL_CIRCUMFERENCE * 3 && leftEnc.get() > -WHEEL_CIRCUMFERENCE * 3){
+					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
+				}/*
 				dash.putString("Auto_Debug_B", "while called");
 				if (currTime - triggerStart <=  2500L)
 					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
@@ -277,7 +281,7 @@ public class Robot extends SampleRobot {
 				else if (currTime - triggerStart <= 3350L)
 					drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
 				else
-					drive.tankDrive(0, 0);
+					drive.tankDrive(0, 0);*/
 				/*** RIP ***/
 				/*
 				if (!goodToGo)
