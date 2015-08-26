@@ -157,7 +157,6 @@ public class Robot extends SampleRobot {
 		drive.setInvertedQuad();
 		drive.setSafety(false);
 		
-		
 
 		/*
 		// Initialize camera 
@@ -172,12 +171,12 @@ public class Robot extends SampleRobot {
 
 		
 
-		
+		/*
 		rightEnc = new QuadratureEncoder(RIGHT_ENC_A, RIGHT_ENC_B, true, 4, DRIVE_ENC_CPR);
 		rightEnc.setDistancePerPulse(WHEEL_CIRCUMFERENCE); // * DRIVE_GEAR_RATIO);
 		leftEnc = new QuadratureEncoder(LEFT_ENC_A, LEFT_ENC_B, 4, DRIVE_ENC_CPR);
 		leftEnc.setDistancePerPulse(WHEEL_CIRCUMFERENCE); //* DRIVE_GEAR_RATIO);
-		
+		*/
 		
 		if (rightLift != null)
 		{
@@ -272,9 +271,16 @@ public class Robot extends SampleRobot {
 			dash.putString("LEFT enc:", "" + drive.getLeftEnc());
 			if (mode == DRIVE_BACKWARD_MODE)
 			{
-				if (rightEnc.get() > -WHEEL_CIRCUMFERENCE * 3 && leftEnc.get() > -WHEEL_CIRCUMFERENCE * 3){
+				/*if (drive.getLeftEnc() > -WHEEL_CIRCUMFERENCE * 3 && drive.getRightEnc() > -WHEEL_CIRCUMFERENCE * 3){
 					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
+				}*/
+				if (drive.getLeftEnc() < WHEEL_CIRCUMFERENCE && drive.getRightEnc() > -WHEEL_CIRCUMFERENCE){
+					drive.tankDrive(-AUTO_DRIVE_POWER, 0);
+				}
+				else{
+					drive.tankDrive(0, 0);
 				}/*
+				}
 				dash.putString("Auto_Debug_B", "while called");
 				if (currTime - triggerStart <=  2500L)
 					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
@@ -299,11 +305,11 @@ public class Robot extends SampleRobot {
 			else if (mode == DRIVE_AND_PICK_UP_TOTE_MODE)
 			{
 				/******* Sorry Joy. :'( RIP in pepperoni*******/
-				/*
+				
 				joytonomousStates(currTime);
 				if (autoState != START)
 					doSlave();
-				 */
+				 
 			}
 			else if (mode == TEST_DISTANCE)
 			{
