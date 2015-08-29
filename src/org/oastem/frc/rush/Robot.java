@@ -81,7 +81,7 @@ public class Robot extends SampleRobot {
 	private static final double WHEEL_CIRCUMFERENCE = 6 * Math.PI;
 	private static final double AUTO_DRIVE_POWER = 0.60; // percentage between 0 and 1
 	private static final double TURN_POWER = 0.875;
-	private static final double LIFT_COMPENSATION_SPEED = 0.5;
+	private static final double LIFT_COMPENSATION_SPEED = 1.07;
 	
 	//      FOR AUTONOMOUS
 	// CHECK ALL OF THESE
