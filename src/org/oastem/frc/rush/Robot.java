@@ -75,13 +75,14 @@ public class Robot extends SampleRobot {
 	private static final int LIFT_HEIGHT_LIMIT = 39;
 	private static final double LIFT_GRAD_DISTANCE = .5;
 	private static final double LIFT_BUFFER = .5;
-	private static final double MAN_LIFT_BUFFER = 0;
+	private static final double MAN_LIFT_BUFFER = -0.1;
 	private static final double LIFT_DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
 	private static final double RIGHT_LIFT_COMP = .5;
 	private static final double WHEEL_CIRCUMFERENCE = 6 * Math.PI;
 	private static final double AUTO_DRIVE_POWER = 0.60; // percentage between 0 and 1
 	private static final double TURN_POWER = 0.875;
-	private static final double LIFT_COMPENSATION_SPEED = 1.07;
+	private static final double LIFT_COMPENSATION_SPEED = .5;
+	private static final double LIFT_IDLE_POWER = 0.1;
 	
 	//      FOR AUTONOMOUS
 	// CHECK ALL OF THESE
@@ -480,6 +481,8 @@ public class Robot extends SampleRobot {
 		boolean backingUp = false;
 		boolean eStopExitDrivePressed = true;
 		boolean accel = false;
+		boolean canPressIdlePower = true;
+		boolean hasIdlePower = false;
 		int state = 0;
 		int saveState = 0;
 
@@ -719,14 +722,50 @@ public class Robot extends SampleRobot {
 				dash.putString("TOTE Button (5): ", "COMPLETELY EMANUEL; move using JOYSTICK");
 				dash.putString("BIN Button (4): ", "COMPLETELY EMANUEL; move using JOYSTICK");
 				dash.putString("EXIT MANUAL Button (9): ", "Exits the COMPLETELY EMANUEL mode");
-				rightLift.set(-joyPayload.getY());
-				if (-joyPayload.getY() < 0)
-					leftLift.set(-joyPayload.getY()*1.07);
-				else
-					leftLift.set(-joyPayload.getY()*1.07);
-				if (leftLift.getPosition() + MAN_LIFT_BUFFER < rightLift.getPosition()){
-					leftLift.set(LIFT_COMPENSATION_SPEED);
+				if (!joyPayload.getRawButton(LIFT_UP))
+					canPressIdlePower = true;
+				if (canPressIdlePower && joyPayload.getRawButton(LIFT_UP))
+				{
+					canPressIdlePower = false;
+					hasIdlePower = !hasIdlePower;
 				}
+				if (hasIdlePower)
+				{
+					if (-joyPayload.getY() >= LIFT_IDLE_POWER || -joyPayload.getY() < -0.1)
+					{
+						rightLift.set(-joyPayload.getY());
+						if (-joyPayload.getY() < 0)
+							leftLift.set(-joyPayload.getY()*1.07);
+						else
+							leftLift.set(-joyPayload.getY()*1.07);
+						if (leftLift.getPosition() + MAN_LIFT_BUFFER < rightLift.getPosition() - .1){
+							leftLift.set(LIFT_COMPENSATION_SPEED);
+						}
+						if (leftLift.getPosition() + MAN_LIFT_BUFFER > rightLift.getPosition() + .1)
+							leftLift.set(-LIFT_COMPENSATION_SPEED);
+					}
+					else
+					{
+						rightLift.set(LIFT_IDLE_POWER);
+						leftLift.set(LIFT_IDLE_POWER);
+					}
+				}
+				else
+				{
+					rightLift.set(-joyPayload.getY());
+					if (-joyPayload.getY() < 0)
+						leftLift.set(-joyPayload.getY()*1.07);
+					else
+						leftLift.set(-joyPayload.getY()*1.07);
+					if (leftLift.getPosition() + MAN_LIFT_BUFFER < rightLift.getPosition() - .1){
+						leftLift.set(LIFT_COMPENSATION_SPEED);
+					}
+					if (leftLift.getPosition() + MAN_LIFT_BUFFER > rightLift.getPosition() + .1)
+						leftLift.set(-LIFT_COMPENSATION_SPEED);
+				}
+				dash.putNumber("left lift", leftLift.getPosition());
+				dash.putNumber("right lift", rightLift.getPosition());
+				dash.putBoolean("Idle Power", hasIdlePower);
 				if (joyPayload.getRawButton(EXIT_MAN_BUTTON) || joyPayload.getRawButton(RESET_BUTTON)){
 					state = RESET;
 				}
