@@ -20,7 +20,6 @@ import org.oastem.frc.control.DriveSystem;
 import org.oastem.frc.control.DriveSystemAccel;
 import org.oastem.frc.sensor.QuadratureEncoder;
 
-
 public class Robot extends SampleRobot {
 
 	// MOTOR PORTS
@@ -81,7 +80,7 @@ public class Robot extends SampleRobot {
 	private static final double WHEEL_CIRCUMFERENCE = 6 * Math.PI;
 	private static final double AUTO_DRIVE_POWER = 0.60; // percentage between 0 and 1
 	private static final double TURN_POWER = 0.875;
-	private static final double LIFT_COMPENSATION_SPEED = .5;
+	private static final double LIFT_COMPENSATION_SPEED = 0.75;
 	private static final double LIFT_IDLE_POWER = 0.1;
 	
 	//      FOR AUTONOMOUS
@@ -159,7 +158,7 @@ public class Robot extends SampleRobot {
 		drive.setSafety(false);
 		
 
-		/*
+		
 		// Initialize camera 
 		camera = CameraServer.getInstance();
 		camera.setQuality(50);
@@ -485,6 +484,7 @@ public class Robot extends SampleRobot {
 		boolean hasIdlePower = false;
 		int state = 0;
 		int saveState = 0;
+		double liftDiff = 0.0;
 
 
 
@@ -728,7 +728,7 @@ public class Robot extends SampleRobot {
 				{
 					canPressIdlePower = false;
 					hasIdlePower = !hasIdlePower;
-				}
+				}/*
 				if (hasIdlePower)
 				{
 					if (-joyPayload.getY() >= LIFT_IDLE_POWER || -joyPayload.getY() < -0.1)
@@ -748,6 +748,12 @@ public class Robot extends SampleRobot {
 					{
 						rightLift.set(LIFT_IDLE_POWER);
 						leftLift.set(LIFT_IDLE_POWER);
+						if (leftLift.getPosition() + MAN_LIFT_BUFFER < rightLift.getPosition() - .1){
+							leftLift.set(LIFT_COMPENSATION_SPEED);
+						}
+						if (leftLift.getPosition() + MAN_LIFT_BUFFER > rightLift.getPosition() + .1)
+							leftLift.set(-LIFT_COMPENSATION_SPEED);
+						
 					}
 				}
 				else
@@ -762,7 +768,23 @@ public class Robot extends SampleRobot {
 					}
 					if (leftLift.getPosition() + MAN_LIFT_BUFFER > rightLift.getPosition() + .1)
 						leftLift.set(-LIFT_COMPENSATION_SPEED);
+				}*/
+				
+				rightLift.set(-joyPayload.getY());
+				liftDiff = rightLift.getPosition() - leftLift.getPosition();
+				if (liftDiff < 0){
+					if (-Math.sqrt(-liftDiff) > -1)
+						leftLift.set(-1);
+					else
+						leftLift.set(-joyPayload.getY() + -Math.sqrt(-liftDiff));
 				}
+				else if (liftDiff >= 0){
+					if (Math.sqrt(liftDiff) > 1)
+						leftLift.set(1);
+					else
+						leftLift.set(-joyPayload.getY() + Math.sqrt(liftDiff));
+				}
+				
 				dash.putNumber("left lift", leftLift.getPosition());
 				dash.putNumber("right lift", rightLift.getPosition());
 				dash.putBoolean("Idle Power", hasIdlePower);
