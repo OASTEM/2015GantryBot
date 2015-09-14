@@ -773,16 +773,16 @@ public class Robot extends SampleRobot {
 				rightLift.set(-joyPayload.getY());
 				liftDiff = rightLift.getPosition() - leftLift.getPosition();
 				if (liftDiff < 0){
-					if (-Math.sqrt(-liftDiff) > -1)
+					if (-Math.log(-liftDiff) > -1) //Math.log() is natural log
 						leftLift.set(-1);
 					else
-						leftLift.set(-joyPayload.getY() + -Math.sqrt(-liftDiff));
+						leftLift.set(-joyPayload.getY() + -Math.log(-liftDiff));
 				}
 				else if (liftDiff >= 0){
-					if (Math.sqrt(liftDiff) > 1)
+					if (Math.log(liftDiff) > 1)
 						leftLift.set(1);
 					else
-						leftLift.set(-joyPayload.getY() + Math.sqrt(liftDiff));
+						leftLift.set(-joyPayload.getY() + Math.log(liftDiff));
 				}
 				
 				dash.putNumber("left lift", leftLift.getPosition());
