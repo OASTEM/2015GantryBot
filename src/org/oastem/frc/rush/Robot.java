@@ -263,6 +263,7 @@ public class Robot extends SampleRobot {
 		drive.resetEncoders();
 		
 		boolean goodToGo = false;
+		double wheelDiff = 0.0;
 		while(isAutonomous() && isEnabled()) {
     		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
 			//imageProcessing();
@@ -313,10 +314,24 @@ public class Robot extends SampleRobot {
 			}
 			else if (mode == TEST_DISTANCE)
 			{
+				wheelDiff = Math.abs(drive.getRightEnc() - (WHEEL_CIRCUMFERENCE * 5));
+				drive.tankDrive(0, Math.sqrt(wheelDiff/20)); //HEY SPRING LOOK DOWN
+				/********* HEY SPRING LOOK DOWN **********/
+				
+				// I did wheelDiff/20 so that the value is b/w 0-1 again.
+				//Try it out and see if slows the wheel down enough to get accurate values
+				
+				
+				/********* HEY SPRING LOOK UP ***********/
+				
+				
+				
+				/*
 				if (currTime - triggerStart <=  2500L)
 					drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
 				else
 					drive.tankDrive(0, 0);
+				*/
 			}
 			else if (mode == DEFAULT_DO_NOTHING_MODE)
 			{
