@@ -263,7 +263,11 @@ public class Robot extends SampleRobot {
 		drive.resetEncoders();
 		
 		boolean goodToGo = false;
+		double wheelGoalDiff = 0.0;
 		double wheelDiff = 0.0;
+		double rightWheelPow = 0.0;
+		double leftWheelCorrection = 0.0;
+		
 		while(isAutonomous() && isEnabled()) {
     		//dash.putBoolean("Drive", drive.forward(6 * Math.PI));
 			//imageProcessing();
@@ -314,8 +318,9 @@ public class Robot extends SampleRobot {
 			}
 			else if (mode == TEST_DISTANCE)
 			{
-				wheelDiff = Math.abs(drive.getRightEnc() - (WHEEL_CIRCUMFERENCE * 5));
-				drive.tankDrive(0, Math.sqrt(wheelDiff/20)); //HEY SPRING LOOK DOWN
+				wheelGoalDiff = Math.abs(drive.getRightEnc() - (WHEEL_CIRCUMFERENCE * 5));
+				rightWheelPow = Math.sqrt(wheelGoalDiff/20);
+				drive.tankDrive(0, rightWheelPow); //HEY SPRING LOOK DOWN
 				/********* HEY SPRING LOOK DOWN **********/
 				
 				// I did wheelDiff/20 so that the value is b/w 0-1 again.
@@ -325,6 +330,23 @@ public class Robot extends SampleRobot {
 				/********* HEY SPRING LOOK UP ***********/
 				
 				
+				/*
+				wheelDiff = drive.getRightEnc() - drive.getLeftEnc();
+				if (wheelDiff < 0){
+					leftWheelCorrection = -Math.log(-wheelDiff);
+					if (leftWheelCorrection < -1) //Math.log() is natural log
+						drive.tankDrive(-1, rightWheelPow);
+					else
+						drive.tankDrive(rightWheelPow + leftWheelCorrection, rightWheelPow);
+				}
+				else if (wheelDiff >= 0){
+					leftWheelCorrection = Math.log(wheelDiff);
+					if (leftWheelCorrection > 1)
+						drive.tankDrive(1, rightWheelPow);
+					else
+						drive.tankDrive(rightWheelPow + leftWheelCorrection, rightWheelPow);
+				}
+				*/
 				
 				/*
 				if (currTime - triggerStart <=  2500L)
@@ -788,7 +810,7 @@ public class Robot extends SampleRobot {
 				rightLift.set(-joyPayload.getY());
 				liftDiff = rightLift.getPosition() - leftLift.getPosition() + MAN_LIFT_BUFFER;
 				if (liftDiff < 0){
-					if (-Math.log(-liftDiff) > -1) //Math.log() is natural log
+					if (-Math.log(-liftDiff) < -1) //Math.log() is natural log
 						leftLift.set(-1);
 					else
 						leftLift.set(-joyPayload.getY() + -Math.log(-liftDiff));
