@@ -74,7 +74,7 @@ public class Robot extends SampleRobot {
 	private static final int LIFT_HEIGHT_LIMIT = 39;
 	private static final double LIFT_GRAD_DISTANCE = .5;
 	private static final double LIFT_BUFFER = .5;
-	private static final double MAN_LIFT_BUFFER = -0.1;
+	private static final double MAN_LIFT_BUFFER = 1.15;
 	private static final double LIFT_DISTANCE_PER_REV = 6.5; // Thanks Mr. Miller!
 	private static final double RIGHT_LIFT_COMP = .5;
 	private static final double WHEEL_CIRCUMFERENCE = 6 * Math.PI;
@@ -786,7 +786,7 @@ public class Robot extends SampleRobot {
 				}*/
 				
 				rightLift.set(-joyPayload.getY());
-				liftDiff = rightLift.getPosition() - leftLift.getPosition();
+				liftDiff = rightLift.getPosition() - leftLift.getPosition() + MAN_LIFT_BUFFER;
 				if (liftDiff < 0){
 					if (-Math.log(-liftDiff) > -1) //Math.log() is natural log
 						leftLift.set(-1);
