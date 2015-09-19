@@ -259,6 +259,7 @@ public class Robot extends SampleRobot {
 			mode = DEFAULT_DO_NOTHING_MODE;
 		
 		System.out.print(mode);
+		dash.putNumber("AUTO MODE", mode);
 		
 		drive.resetEncoders();
 		
@@ -318,9 +319,16 @@ public class Robot extends SampleRobot {
 			}
 			else if (mode == TEST_DISTANCE)
 			{
-				wheelGoalDiff = Math.abs(drive.getRightEnc() - (WHEEL_CIRCUMFERENCE * 5));
-				rightWheelPow = Math.sqrt(wheelGoalDiff/20);
-				drive.tankDrive(0, rightWheelPow); //HEY SPRING LOOK DOWN
+				/*
+				wheelGoalDiff = (WHEEL_CIRCUMFERENCE * 2) - drive.getRightEnc();
+				if (wheelGoalDiff > 0)
+					rightWheelPow = -Math.sqrt(wheelGoalDiff/70);
+				else
+					rightWheelPow = Math.sqrt(-wheelGoalDiff/70);
+				drive.tankDrive(0, rightWheelPow);
+				*/
+				drive.tankDrive(0, -.45);
+				//HEY SPRING LOOK DOWN
 				/********* HEY SPRING LOOK DOWN **********/
 				
 				// I did wheelDiff/20 so that the value is b/w 0-1 again.
