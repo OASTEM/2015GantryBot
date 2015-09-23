@@ -234,10 +234,10 @@ public class Robot extends SampleRobot {
 	// YES SHE DOES 
 	
 	// AUTONOMOUS MODES
-	private static final int DRIVE_AND_PICK_UP_TOTE_MODE = 0;
+	private static final int DRIVE_BACKWARD_WITH_TOTE = 0;
 	private static final int DRIVE_BACKWARD_MODE = 1;
 	private static final int DEFAULT_DO_NOTHING_MODE = 3;
-	private static final int TEST_DISTANCE = 4;
+	private static final int DRIVE_TO_LANDFILL = 4;
 
 	private int autoState = 0;
 	private long currTime = 0L;
@@ -252,9 +252,9 @@ public class Robot extends SampleRobot {
 		if (autoSwitchOne.get() && autoSwitchTwo.get())
 			mode = DRIVE_BACKWARD_MODE;
 		else if (autoSwitchOne.get() && !autoSwitchTwo.get())
-			mode = DRIVE_AND_PICK_UP_TOTE_MODE;
+			mode = DRIVE_BACKWARD_WITH_TOTE;
 		else if (!autoSwitchOne.get() && autoSwitchTwo.get())
-			mode = TEST_DISTANCE;
+			mode = DRIVE_TO_LANDFILL;
 		else if (!autoSwitchOne.get() && !autoSwitchTwo.get())
 			mode = DEFAULT_DO_NOTHING_MODE;
 		
@@ -279,13 +279,17 @@ public class Robot extends SampleRobot {
 			{
 				/*if (drive.getLeftEnc() > -WHEEL_CIRCUMFERENCE * 3 && drive.getRightEnc() > -WHEEL_CIRCUMFERENCE * 3){
 					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
-				}*/
+				}*//*
 				if (drive.getLeftEnc() < WHEEL_CIRCUMFERENCE && drive.getRightEnc() > -WHEEL_CIRCUMFERENCE){
 					drive.tankDrive(-AUTO_DRIVE_POWER, 0);
 				}
 				else{
 					drive.tankDrive(0, 0);
-				}/*
+				}*/
+				drive.reverse(300);
+				//drive.forward(300);
+				
+				/*
 				}
 				dash.putString("Auto_Debug_B", "while called");
 				if (currTime - triggerStart <=  2500L)
@@ -308,16 +312,18 @@ public class Robot extends SampleRobot {
 					drive.forward(10);
 				*/
 			}
-			else if (mode == DRIVE_AND_PICK_UP_TOTE_MODE)
+			else if (mode == DRIVE_BACKWARD_WITH_TOTE)
 			{
 				/******* Sorry Joy. :'( RIP in pepperoni*******/
-				
+				/*
 				joytonomousStates(currTime);
 				if (autoState != START)
-					doSlave();
+					doSlave();*/
+				
+				//here goes drive backwards with tote mode
 				 
 			}
-			else if (mode == TEST_DISTANCE)
+			else if (mode == DRIVE_TO_LANDFILL)
 			{
 				/*
 				wheelGoalDiff = (WHEEL_CIRCUMFERENCE * 2) - drive.getRightEnc();

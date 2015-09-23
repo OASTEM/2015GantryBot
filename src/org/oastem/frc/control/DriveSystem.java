@@ -9,6 +9,8 @@ import org.oastem.frc.sensor.*;
 
 import java.util.Hashtable;
 
+import javax.crypto.EncryptedPrivateKeyInfo;
+
 /**
  * Class to control the entirety of the drive train of an FRC robot.
  * Originally designed by Kevin Tran for FRC 4079 in 2013: Ultimate Ascent.
@@ -20,9 +22,9 @@ public class DriveSystem {
     // Constants.
     protected static final int NUM_ITEMS = 12;
     protected static final double DISTANCE_PER_REVOLUTION = 6 * Math.PI; // FOR DEFAULT DRIVE WHEELS 
-    protected static final double AUTO_DRIVE_POWER = 0.65; // percentage between 0 and 1
-    protected static final double CORRECTION = .2;
-    protected static final double BUFFER = .5;
+    protected static final double AUTO_DRIVE_POWER = 0.5; // percentage between 0 and 1
+    protected static final double CORRECTION = 0.75;
+    protected static final double BUFFER = 0.1;
     protected static final double COMPENSATION = 7;
     
     // Singleton design pattern: instance of this class.
@@ -69,6 +71,16 @@ public class DriveSystem {
     public double getLeftEnc()
     {
     	return encLeft.getDistance();
+    }
+    
+    public double getRateRightEnc()
+    {
+    	return encRight.getRate();
+    }
+    
+    public double getRateLeftEnc()
+    {
+    	return encLeft.getRate();
     }
     
     public void initializeDrive(int leftFront, int leftRear, int rightFront, int rightRear) {
