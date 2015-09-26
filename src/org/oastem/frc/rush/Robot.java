@@ -286,20 +286,18 @@ public class Robot extends SampleRobot {
 				else{
 					drive.tankDrive(0, 0);
 				}*/
-				drive.reverse(300);
+				//drive.reverse(300);
 				//drive.forward(300);
 				
-				/*
-				}
-				dash.putString("Auto_Debug_B", "while called");
+				
+				
+				//dash.putString("Auto_Debug_B", "while called");
 				if (currTime - triggerStart <=  2500L)
 					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
 				else if (currTime - triggerStart <= 3000L)
 					drive.tankDrive(0, 0);
-				else if (currTime - triggerStart <= 3350L)
-					drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
 				else
-					drive.tankDrive(0, 0);*/
+					drive.tankDrive(0, 0);
 				/*** RIP ***/
 				/*
 				if (!goodToGo)
@@ -314,6 +312,15 @@ public class Robot extends SampleRobot {
 			}
 			else if (mode == DRIVE_BACKWARD_WITH_TOTE)
 			{
+				//dash.putString("Auto_Debug_B", "while called");
+				if (currTime - triggerStart <=  2500L)
+					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
+				else if (currTime - triggerStart <= 3000L)
+					drive.tankDrive(0, 0);
+				else if (currTime - triggerStart <= 3350L)
+					drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
+				else
+					drive.tankDrive(0, 0);
 				/******* Sorry Joy. :'( RIP in pepperoni*******/
 				/*
 				joytonomousStates(currTime);
@@ -333,7 +340,7 @@ public class Robot extends SampleRobot {
 					rightWheelPow = Math.sqrt(-wheelGoalDiff/70);
 				drive.tankDrive(0, rightWheelPow);
 				*/
-				drive.tankDrive(0, -.45);
+				
 				//HEY SPRING LOOK DOWN
 				/********* HEY SPRING LOOK DOWN **********/
 				
@@ -342,6 +349,17 @@ public class Robot extends SampleRobot {
 				
 				
 				/********* HEY SPRING LOOK UP ***********/
+				
+				if (currTime - triggerStart <=  3500L)
+					drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
+				else if (currTime - triggerStart <= 4000L)
+					drive.tankDrive(0, 0);
+				else if (currTime - triggerStart <= 4500L)
+					setLift(ABOVE_TOTE);
+				else if (currTime - triggerStart <= 5000L)
+					drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
+				else
+					drive.tankDrive(0, 0);
 				
 				
 				/*
