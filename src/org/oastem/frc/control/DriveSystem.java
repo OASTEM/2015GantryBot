@@ -153,7 +153,7 @@ public class DriveSystem {
     
     public boolean reverse(double distance) {
         if ( (encRight.getDistance() > (-distance + COMPENSATION) ) || (encLeft.getDistance() > (-distance + COMPENSATION) ) ) {
-            drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
+            //drive.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
             /**********/
             keepStraightBackward();
             if (hasSecondary) drive2.tankDrive(AUTO_DRIVE_POWER, AUTO_DRIVE_POWER);
@@ -166,7 +166,7 @@ public class DriveSystem {
 
     public boolean forward(double distance) {
         if ( (encRight.getDistance() < (distance - COMPENSATION) ) || (encLeft.getDistance() < (distance - COMPENSATION) ) ) {
-            drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
+            //drive.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
             /**********/
             keepStraightForward();
             if (hasSecondary) drive2.tankDrive(-AUTO_DRIVE_POWER, -AUTO_DRIVE_POWER);
